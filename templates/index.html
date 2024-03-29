@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>File Upload</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('form').submit(function(event) {
+                event.preventDefault();
+                var formData = new FormData(this);
+                $.ajax({
+                    url: '/upload',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(data) {
+                        var tableData = data;
+                        var selectElement = '<select name="selected_cells" multiple>';
+                        for (var i = 0; i < tableData.length; i++) {
+                            var row = tableData[i];
+                            for (var j = 0; j < row.length; j++) {
+                                var cellText = row[j];
+                                selectElement += '<option value="' + cellText + '">' + cellText + '</option>';
+                            }
+                        }
+                        selectElement += '</select>';
+                        $('#table-data').html(selectElement);
+                        $('#submit-cells').show();
+                    }
+                });
+            });
+
+            $('#submit-cells').click(function() {
+                var selectedCells = $('select[name="selected_cells"]').val();
+                $.ajax({
+                    url: '/create_form',
+                    type: 'POST',
+                    data: JSON.stringify(selectedCells),
+                    contentType: 'application/json',
+                    success: function(data) {
+                        $('#dynamic-form').html(data);
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Upload a .docx File</h1>
+    <form>
+        <input type="file" name="file">
+        <input type="submit" value="Upload">
+    </form>
+    <div id="table-data"></div>
+    <button id="submit-cells" style="display: none;">Submit Selected Cells</button>
+    <div id="dynamic-form"></div>
+</body>
+</html>
