@@ -4,6 +4,8 @@
     <title>File Upload</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+        var uniqueFilename = '';
+
         $(document).ready(function() {
             $('form').submit(function(event) {
                 event.preventDefault();
@@ -15,7 +17,8 @@
                     processData: false,
                     contentType: false,
                     success: function(data) {
-                        var tableData = data;
+                        var tableData = data.table_data;
+                        uniqueFilename = data.unique_filename;
                         var selectElement = '<select name="selected_cells" multiple>';
                         for (var i = 0; i < tableData.length; i++) {
                             var row = tableData[i];
@@ -47,6 +50,7 @@
             $(document).on('submit', '#dynamic-form form', function(event) {
                 event.preventDefault();
                 var formData = $(this).serialize();
+                formData += '&unique_filename=' + encodeURIComponent(uniqueFilename);
                 $.ajax({
                     url: '/fill_data',
                     type: 'POST',
