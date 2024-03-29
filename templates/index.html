@@ -43,6 +43,20 @@
                     }
                 });
             });
+
+            $(document).on('submit', '#dynamic-form form', function(event) {
+                event.preventDefault();
+                var formData = $(this).serialize();
+                $.ajax({
+                    url: '/fill_data',
+                    type: 'POST',
+                    data: formData,
+                    success: function(data) {
+                        var downloadLink = '<a href="' + data.file_url + '" download>Download Modified File</a>';
+                        $('#download-link').html(downloadLink);
+                    }
+                });
+            });
         });
     </script>
 </head>
@@ -55,5 +69,6 @@
     <div id="table-data"></div>
     <button id="submit-cells" style="display: none;">Submit Selected Cells</button>
     <div id="dynamic-form"></div>
+    <div id="download-link"></div>
 </body>
 </html>
