@@ -81,3 +81,11 @@ project_directory/
 ├── uploads/
 └── requirements.txt
 # #########
+- Password Hashing: Currently, passwords are stored in plain text, which is a security risk. Implement password hashing using libraries like werkzeug.security or bcrypt to store hashed passwords.
+- Error Handling: Improve error handling with custom error pages for common HTTP errors (404, 500, etc.).
+- Validation and Sanitization: Further enhance the validation of user inputs, especially for file uploads and form submissions, to prevent attacks like SQL injection or XSS.
+- Environment Variables for Configuration: Use environment variables for configuration settings like SECRET_KEY, database URI, etc., instead of hardcoding them in the script.
+- Logging: Add logging for critical operations, errors, and user actions for better monitoring and debugging.
+- User Roles and Permissions: Introduce roles (admin, regular user, etc.) and permissions for different levels of access control.
+- Dockerization: Containerize the app with Docker for easier deployment and scaling.
+# #########

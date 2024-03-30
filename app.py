@@ -7,6 +7,7 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, SelectMultipleField
 from wtforms.validators import DataRequired, Length, Email, EqualTo
+from werkzeug.security import generate_password_hash, check_password_hash
 from docx import Document
 
 app = Flask(__name__)
@@ -69,7 +70,8 @@ def signup():
         if existing_user:
             flash('Email address already exists. Please log in.')
             return redirect(url_for('login'))
-        new_user = User(email=form.email.data, password=form.password.data)
+        hashed_password = generate_password_hash(form.password.data, method='pbkdf2:sha256')
+        new_user = User(email=form.email.data, password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
         login_user(new_user)
@@ -81,7 +83,7 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
-        if user and user.password == form.password.data:
+        if user and check_password_hash(user.password, form.password.data):
             login_user(user)
             return redirect(url_for('index'))
         else:
@@ -167,7 +169,7 @@ def fill_form(form_id):
                                     # Preserve the original formatting and style of the cell
                                     cell_paragraph = cell.paragraphs[0]
                                     original_text = cell_paragraph.text
-                                    run = cell_paragraph.add_run(f': {value}')
+                                    run = cell_paragraph.add_run(value)
                                     run.font.name = cell_paragraph.runs[0].font.name
                                     run.font.size = cell_paragraph.runs[0].font.size
                                     run.bold = cell_paragraph.runs[0].bold
@@ -229,7 +231,6 @@ def init_db():
             db.create_all()
 
 init_db()
-
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
