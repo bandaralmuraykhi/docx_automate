@@ -1,25 +1,35 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Dashboard</title>
-</head>
-<body>
-    <h1>Dashboard</h1>
-    <p>Welcome, {{ current_user.email }}!</p>
-    <a href="{{ url_for('logout') }}">Log Out</a>
+{% extends 'base.html' %}
 
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+    <h1>Dashboard</h1>
     <h2>Form Responses</h2>
     {% if form_responses %}
-        <ul>
-            {% for response in form_responses %}
-                <li>
-                    <p>Form ID: {{ response.form_id }}</p>
-                    <p>Data: {{ response.data }}</p>
-                </li>
-            {% endfor %}
-        </ul>
+        <table>
+            <thead>
+                <tr>
+                    <th>Form ID</th>
+                    <th>Form Name</th>
+                    <th>Form Link</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for response in form_responses %}
+                    <tr>
+                        <td>{{ response.form_id }}</td>
+                        <td>{{ response.form_name }}</td>
+                        <td><a href="{{ response.form_link }}" target="_blank">{{ response.form_link }}</a></td>
+                        <td>
+                            <a href="{{ url_for('delete_form', form_id=response.form_id) }}">Delete</a>
+                            <a href="{{ url_for('update_form', form_id=response.form_id) }}">Update Selected Cells</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     {% else %}
         <p>No form responses found.</p>
     {% endif %}
-</body>
-</html>
+{% endblock %}

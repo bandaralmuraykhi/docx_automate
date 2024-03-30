@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Update Form{% endblock %}
+
+{% block content %}
+    <h1>Update Form</h1>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div>
+            {{ form.selected_cells.label }}<br>
+            {{ form.selected_cells(size=10) }}
+        </div>
+        <div>
+            {{ form.submit() }}
+        </div>
+    </form>
+{% endblock %}

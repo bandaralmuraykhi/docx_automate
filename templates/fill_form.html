@@ -1,9 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Fill Form</title>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}Fill Form{% endblock %}
+
+{% block content %}
     <h1>Fill Form</h1>
     <form action="{{ url_for('fill_form', form_id=form_id) }}" method="POST">
         {% for cell in selected_cells %}
@@ -12,5 +11,4 @@
         <input type="hidden" name="unique_filename" value="{{ unique_filename }}">
         <input type="submit" value="Submit">
     </form>
-</body>
-</html>
+{% endblock %}

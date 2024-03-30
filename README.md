@@ -64,3 +64,20 @@ Implement email notifications to the form creator when someone submits the form.
 This will keep the form creator informed about the form submissions and allow them to take necessary actions.
 
 # ##########
+# #######
+project_directory/
+├── app.py
+├── instance/
+│   └── database.db
+├── templates/
+│   ├── base.html
+│   ├── index.html
+│   ├── home.html
+│   ├── dashboard.html
+│   ├── signup.html
+│   ├── login.html
+│   └── fill_form.html
+│   └── update_form.html
+├── uploads/
+└── requirements.txt
+# #########

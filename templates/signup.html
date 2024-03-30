@@ -1,9 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Sign Up</title>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}Sign Up{% endblock %}
+
+{% block content %}
     <h1>Sign Up</h1>
     {% with messages = get_flashed_messages() %}
         {% if messages %}
@@ -28,5 +27,4 @@
         {{ form.submit() }}
     </form>
     <p>Already have an account? <a href="{{ url_for('login') }}">Log In</a></p>
-</body>
-</html>
+{% endblock %}

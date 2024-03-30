@@ -1,7 +1,17 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>File Upload</title>
+{% extends 'base.html' %}
+
+{% block title %}File Upload{% endblock %}
+
+{% block content %}
+    <h1>Upload a .docx File</h1>
+    <form>
+        <input type="file" name="file">
+        <input type="submit" value="Upload">
+    </form>
+    <div id="table-data"></div>
+    <button id="submit-cells" style="display: none;">Submit Selected Cells</button>
+    <div id="form-url"></div>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         var uniqueFilename = '';
@@ -49,20 +59,4 @@
             });
         });
     </script>
-</head>
-<body>
-    <h1>Upload a .docx File</h1>
-    {% if current_user.is_authenticated %}
-        <p>Welcome, {{ current_user.email }}! <a href="{{ url_for('logout') }}">Log Out</a></p>
-    {% else %}
-        <p><a href="{{ url_for('signup') }}">Sign Up</a> | <a href="{{ url_for('login') }}">Log In</a></p>
-    {% endif %}
-    <form>
-        <input type="file" name="file">
-        <input type="submit" value="Upload">
-    </form>
-    <div id="table-data"></div>
-    <button id="submit-cells" style="display: none;">Submit Selected Cells</button>
-    <div id="form-url"></div>
-</body>
-</html>
+{% endblock %}
