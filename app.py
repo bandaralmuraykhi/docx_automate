@@ -1,21 +1,97 @@
 import os
 import tempfile
 import uuid
-from flask import Flask, render_template, request, redirect, jsonify, send_file, abort
+from flask import Flask, render_template, request, redirect, jsonify, send_file, abort, url_for, flash
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, SubmitField
+from wtforms.validators import DataRequired, Length, Email, EqualTo
 from docx import Document
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'your-secret-key'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+db = SQLAlchemy(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
 
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-def allowed_file(filename):
-    allowed_extensions = ['docx']
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(100), nullable=False)
+
+class FormResponse(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    form_id = db.Column(db.String(100), nullable=False)
+    data = db.Column(db.JSON, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', backref='form_responses')
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+class SignupForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
+    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Sign Up')
+
+class LoginForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    submit = SubmitField('Log In')
 
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    form = SignupForm()
+    if form.validate_on_submit():
+        existing_user = User.query.filter_by(email=form.email.data).first()
+        if existing_user:
+            flash('Email address already exists. Please log in.')
+            return redirect(url_for('login'))
+        new_user = User(email=form.email.data, password=form.password.data)
+        db.session.add(new_user)
+        db.session.commit()
+        login_user(new_user)
+        return redirect(url_for('dashboard'))
+    return render_template('signup.html', form=form)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user and user.password == form.password.data:
+            login_user(user)
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Invalid email or password. Please try again.')
+    return render_template('login.html', form=form)
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    form_responses = FormResponse.query.filter_by(user_id=current_user.id).all()
+    return render_template('dashboard.html', form_responses=form_responses)
+
+def allowed_file(filename):
+    allowed_extensions = ['docx']
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -48,45 +124,49 @@ def upload_file():
 
 @app.route('/create_form', methods=['POST'])
 def create_form():
-    selected_cells = request.json
-    form_html = '<form>'
-    for cell_text in selected_cells:
-        form_html += f'<label>{cell_text}:</label><input type="text" name="{cell_text}"><br>'
-    form_html += '<input type="submit" value="Submit"></form>'
-    return form_html
+    selected_cells = request.json.get('selected_cells', [])
+    unique_filename = request.json.get('unique_filename', '')
+    form_id = str(uuid.uuid4())
+    form_url = url_for('fill_form', form_id=form_id, _external=True)
+    return jsonify({'form_url': form_url, 'selected_cells': selected_cells, 'unique_filename': unique_filename})
 
-@app.route('/fill_data', methods=['POST'])
-def fill_data():
-    form_data = request.form
-    unique_filename = form_data.get('unique_filename')
-    file_path = os.path.join(UPLOAD_FOLDER, unique_filename)
-    document = Document(file_path)
-    for cell_text, value in form_data.items():
-        if cell_text != 'unique_filename':
-            for table in document.tables:
-                for row in table.rows:
-                    for cell in row.cells:
-                        if cell.text.strip() == cell_text:
-                            # Preserve the original formatting and style of the cell
-                            cell_paragraph = cell.paragraphs[0]
-                            original_text = cell_paragraph.text
-                            run = cell_paragraph.add_run(value)
-                            run.font.name = cell_paragraph.runs[0].font.name
-                            run.font.size = cell_paragraph.runs[0].font.size
-                            run.bold = cell_paragraph.runs[0].bold
-                            run.italic = cell_paragraph.runs[0].italic
-                            run.underline = cell_paragraph.runs[0].underline
+@app.route('/fill_form/<form_id>', methods=['GET', 'POST'])
+def fill_form(form_id):
+    if request.method == 'POST':
+        form_data = request.form
+        unique_filename = form_data.get('unique_filename')
+        file_path = os.path.join(UPLOAD_FOLDER, unique_filename)
+        document = Document(file_path)
+        for cell_text, value in form_data.items():
+            if cell_text != 'unique_filename':
+                for table in document.tables:
+                    for row in table.rows:
+                        for cell in row.cells:
+                            if cell.text.strip() == cell_text:
+                                # Preserve the original formatting and style of the cell
+                                cell_paragraph = cell.paragraphs[0]
+                                original_text = cell_paragraph.text
+                                run = cell_paragraph.add_run(value)
+                                run.font.name = cell_paragraph.runs[0].font.name
+                                run.font.size = cell_paragraph.runs[0].font.size
+                                run.bold = cell_paragraph.runs[0].bold
+                                run.italic = cell_paragraph.runs[0].italic
+                                run.underline = cell_paragraph.runs[0].underline
 
-    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.docx')
-    document.save(temp_file.name)
-    temp_file.close()
+        # Save the form response
+        form_response = FormResponse(form_id=form_id, data=form_data, user_id=current_user.id)
+        db.session.add(form_response)
+        db.session.commit()
 
-    return jsonify({'file_url': '/download/' + os.path.basename(temp_file.name)})
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.docx')
+        document.save(temp_file.name)
+        temp_file.close()
 
-@app.route('/download/<filename>')
-def download_file(filename):
-    temp_file_path = os.path.join(tempfile.gettempdir(), filename)
-    return send_file(temp_file_path, as_attachment=True)
+        return send_file(temp_file.name, as_attachment=True)
+    else:
+        selected_cells = request.args.get('selected_cells', '').split(',')
+        unique_filename = request.args.get('unique_filename', '')
+        return render_template('fill_form.html', form_id=form_id, selected_cells=selected_cells, unique_filename=unique_filename)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)

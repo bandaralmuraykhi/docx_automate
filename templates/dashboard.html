@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+</head>
+<body>
+    <h1>Dashboard</h1>
+    <p>Welcome, {{ current_user.email }}!</p>
+    <a href="{{ url_for('logout') }}">Log Out</a>
+
+    <h2>Form Responses</h2>
+    {% if form_responses %}
+        <ul>
+            {% for response in form_responses %}
+                <li>
+                    <p>Form ID: {{ response.form_id }}</p>
+                    <p>Data: {{ response.data }}</p>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No form responses found.</p>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fill Form</title>
+</head>
+<body>
+    <h1>Fill Form</h1>
+    <form action="{{ url_for('fill_form', form_id=form_id) }}" method="POST">
+        {% for cell in selected_cells %}
+            <label>{{ cell }}:</label><input type="text" name="{{ cell }}"><br>
+        {% endfor %}
+        <input type="hidden" name="unique_filename" value="{{ unique_filename }}">
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html>
