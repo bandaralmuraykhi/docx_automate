@@ -14,9 +14,11 @@ from docx import Document
 from itsdangerous import URLSafeTimedSerializer as Serializer
 
 app = Flask(__name__)
+app.static_folder = ''
 bootstrap = Bootstrap(app)
 # Access the environment variable `export FLASK_SECRET_KEY=your_secret_key_here`
 app.config['SECRET_KEY'] = '88m#2***4Q5^'
+# app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY')
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'instance', 'database.db')
 db = SQLAlchemy(app)

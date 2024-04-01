@@ -1,29 +1,50 @@
 {% extends 'base.html' %}
 
-{% block title %}Log In{% endblock %}
+{% block title %}
+    Log In
+{% endblock %}
 
 {% block content %}
-    <h1 class="mb-3">Log In</h1>
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="alert alert-info" role="alert">
-                {% for message in messages %}
-                    {{ message }}<br>
-                {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
-    <form method="POST" action="{{ url_for('login') }}" class="mb-3">
-        {{ form.hidden_tag() }}
-        <div class="form-group">
-            {{ form.email.label(class="form-label") }}
-            {{ form.email(class="form-control") }}
+    <section class="section">
+        <div class="container">
+            <h1 class="title">Log In</h1>
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="notification is-info">
+                        <button class="delete"></button>
+                        {% for message in messages %}
+                            <p>{{ message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST">
+                {{ form.hidden_tag() }}
+
+                <div class="field">
+                    <label class="label">Email</label>
+                    <div class="control">
+                        {{ form.email(class="input", placeholder="Your Email") }}
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label">Password</label>
+                    <div class="control">
+                        {{ form.password(class="input", placeholder="Your Password") }}
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="control">
+                        {{ form.submit(class="button is-primary") }}
+                    </div>
+                </div>
+            </form>
+
+            <p>Don't have an account? <a href="{{ url_for('signup') }}">Sign Up</a></p>
         </div>
-        <div class="form-group">
-            {{ form.password.label(class="form-label") }}
-            {{ form.password(class="form-control") }}
-        </div>
-        {{ form.submit(class="btn btn-primary") }}
-    </form>
-    <p>Don't have an account? <a href="{{ url_for('signup') }}">Sign Up</a></p>
+    </section>
 {% endblock %}

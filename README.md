@@ -22,10 +22,39 @@
        ```
        source .flask-env/bin/activate
        ```
-   - Install the backend dependencies:
+      - Install the backend dependencies:
+      ```
+      pip install -r requirements.txt
+      ```
+
+1. **Open Terminal or Command Prompt**: Open your terminal or command prompt application.
+
+2. **Download Node.js Installer**: You can download the Node.js installer from the official Node.js website: [Node.js Downloads](https://nodejs.org/en/download/).
+
+3. **Install Node.js**: Depending on your operating system, the installation steps may vary:
+
+   - **Windows**: Double-click the downloaded installer (.msi file) and follow the installation wizard instructions. Make sure to select the option to include npm during installation.
+   
+   - **macOS**: You can install Node.js using Homebrew by running the following command in Terminal:
      ```
-     pip install -r requirements.txt
+     brew install node
      ```
+   
+   - **Linux (Debian/Ubuntu)**: You can install Node.js using apt by running the following commands in Terminal:
+     ```
+     sudo apt update
+     sudo apt install nodejs npm
+     ```
+
+   - **Linux (Fedora)**: You can install Node.js using dnf by running the following command in Terminal:
+     ```
+     sudo dnf install nodejs npm
+     ```
+
+  - install bluma
+  ```
+  npm install bulma
+  ```
 
 ### Using Environment Variable:
 ### On Windows:

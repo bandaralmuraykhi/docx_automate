@@ -3,8 +3,59 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-    <div class="text-center mt-5">
-        <h1 class="display-4">Welcome to Dynamic Form Generator</h1>
-        <p class="lead">Please <a href="{{ url_for('login') }}" class="btn btn-primary">Log in</a> or <a href="{{ url_for('signup') }}" class="btn btn-secondary">Sign up</a> to access the file upload and form creation functionality.</p>
-    </div>
-{% endblock %}
+    <section class="hero is-primary is-bold">
+      <div class="hero-body">
+        <div class="container">
+          <h1 class="title is-1">Welcome to Dynamic Form Gen 🚀</h1>
+          <h2 class="subtitle">Transform Your Documents into Interactive Forms 📄➡️📝</h2>
+        </div>
+      </div>
+    </section>
+    
+    <section class="section">
+      <div class="container">
+        <div class="columns is-vcentered">
+          <div class="column is-6">
+            <h3 class="title is-3">Effortlessly Create Forms from Your Documents 🛠️</h3>
+            <p class="content">
+              Dynamic Form Gen is a powerful tool that allows you to seamlessly convert your Word documents (.docx files) into interactive forms. Say goodbye to manual form creation and embrace the simplicity of our platform 🌐.
+            </p>
+            <p class="content">
+              With just a few clicks, you can transform your existing documents into reusable forms that can be easily shared and filled out by anyone, anytime 🔄.
+            </p>
+          </div>
+          <div class="column is-6">
+            <figure class="image">
+              <img src="{{ url_for('static', filename='img/form-illustration.png') }}" alt="Form Illustration">
+            </figure>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <section class="section">
+      <div class="container">
+        <h3 class="title is-3">Key Features 🔑</h3>
+        <div class="columns">
+          <div class="column">
+            <div class="box">
+              <h4 class="title is-4">Convert Word Documents to Forms 📃🔄</h4>
+              <p>Upload your Word documents, and our platform will automatically convert them into interactive forms, ready for distribution 📤.</p>
+            </div>
+          </div>
+          <div class="column">
+            <div class="box">
+              <h4 class="title is-4">Reusable Forms ♻️</h4>
+              <p>Once created, your forms can be reused as many times as needed, saving you time and effort ⏳.</p>
+            </div>
+          </div>
+          <div class="column">
+            <div class="box">
+              <h4 class="title is-4">Collaborative Form Filling 🤝</h4>
+              <p>Share your forms with anyone, and they can easily fill them out and submit the completed documents back to you 📬.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    {% endblock %}
