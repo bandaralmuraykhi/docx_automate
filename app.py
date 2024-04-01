@@ -1,30 +1,97 @@
 import os
 import tempfile
 import uuid
+import hashlib
 from flask import Flask, render_template, request, redirect, jsonify, send_file, abort, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask_mail import Mail, Message
 from flask_wtf import FlaskForm
+from flask_bootstrap import Bootstrap
 from wtforms import StringField, PasswordField, SubmitField, SelectMultipleField
 from wtforms.validators import DataRequired, Length, Email, EqualTo
-from werkzeug.security import generate_password_hash, check_password_hash
 from docx import Document
+from itsdangerous import URLSafeTimedSerializer as Serializer
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key'
+bootstrap = Bootstrap(app)
+# Access the environment variable `export FLASK_SECRET_KEY=your_secret_key_here`
+app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY')
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'instance', 'database.db')
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
+# Configuration for Flask-Mail
+app.config.from_pyfile('config.cfg')
+mail = Mail(app)
+
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+def generate_salt():
+    # Generate a 16-byte salt
+    return os.urandom(16)
+
+def hash_password(password, salt):
+    # Hash a password with the provided salt
+    pwdhash = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
+    return pwdhash
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
-    password = db.Column(db.String(100), nullable=False)
+    password = db.Column(db.String(256), nullable=False)
+    salt = db.Column(db.LargeBinary(16), nullable=False)
+    confirmed = db.Column(db.Boolean, default=False)
+
+    def generate_confirmation_token(self, expiration=3600):
+        s = Serializer(app.config['SECRET_KEY'])
+        return s.dumps({'confirm': self.id})
+
+    def confirm(self, token):
+        s = Serializer(app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token, max_age=3600)
+        except:
+            return False
+        if data.get('confirm') != self.id:
+            return False
+        self.confirmed = True
+        db.session.commit()
+        return True
+
+    def generate_reset_token(self, expiration=3600):
+        s = Serializer(app.config['SECRET_KEY'])
+        return s.dumps({'reset': self.id})
+
+    @staticmethod
+    def reset_password(token, new_password):
+        s = Serializer(app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token, max_age=3600)
+        except:
+            return False
+        user = User.query.get(data.get('reset'))
+        if user is None:
+            return False
+        user.password = new_password
+        db.session.commit()
+        return True
+    
+    @staticmethod
+    def verify_reset_token(token):
+        s = Serializer(app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+        except:
+            return None
+        return User.query.get(data.get('reset'))
 
 class FormResponse(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -35,10 +102,8 @@ class FormResponse(db.Model):
     unique_filename = db.Column(db.String(100), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship('User', backref='form_responses')
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
+    send_email = db.Column(db.Boolean, default=False)
+    allow_download = db.Column(db.Boolean, default=True)
 
 class SignupForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
@@ -52,8 +117,21 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Log In')
 
 class UpdateFormForm(FlaskForm):
+    form_name = StringField('Form Name', validators=[DataRequired()])
     selected_cells = SelectMultipleField('Selected Cells', coerce=str)
     submit = SubmitField('Update')
+
+class ResetPasswordRequestForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    submit = SubmitField('Request Password Reset')
+
+class ResendConfirmationForm(FlaskForm):
+    submit = SubmitField('Resend Confirmation Email')
+
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField('New Password', validators=[DataRequired(), Length(min=6)])
+    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Reset Password')
 
 @app.route('/')
 def index():
@@ -70,12 +148,18 @@ def signup():
         if existing_user:
             flash('Email address already exists. Please log in.')
             return redirect(url_for('login'))
-        hashed_password = generate_password_hash(form.password.data, method='pbkdf2:sha256')
-        new_user = User(email=form.email.data, password=hashed_password)
+        
+        # Generating salt and hashing the password
+        salt = generate_salt()
+        hashed_password = hash_password(form.password.data, salt)
+        new_user = User(email=form.email.data, password=hashed_password, salt=salt)
+        
         db.session.add(new_user)
         db.session.commit()
-        login_user(new_user)
-        return redirect(url_for('index'))
+        token = new_user.generate_confirmation_token()
+        send_email(new_user.email, 'Confirm Your Email', 'confirm_email', user=new_user, token=token)
+        flash('A confirmation email has been sent to you.', 'info')
+        return redirect(url_for('unconfirmed'))
     return render_template('signup.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -83,18 +167,83 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
-        if user and check_password_hash(user.password, form.password.data):
-            login_user(user)
-            return redirect(url_for('index'))
+        if user:
+            # Hashing the provided password with the stored salt
+            hashed_password = hash_password(form.password.data, user.salt)
+            if hashed_password == user.password:
+                if user.confirmed:
+                    login_user(user)
+                    return redirect(url_for('index'))
+                else:
+                    flash('Please confirm your email address to access your account.', 'warning')
+                    return redirect(url_for('unconfirmed'))
         else:
             flash('Invalid email or password. Please try again.')
     return render_template('login.html', form=form)
+
 
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
     return redirect(url_for('index'))
+
+@app.route('/confirm/<token>')
+def confirm(token):
+    user = User.query.filter_by(confirmed=False).first()
+    if user and user.confirm(token):
+        flash('Your email has been confirmed.', 'success')
+    else:
+        flash('The confirmation link is invalid or has expired.', 'error')
+    return redirect(url_for('login'))
+
+@app.route('/unconfirmed', methods=['GET', 'POST'])
+def unconfirmed():
+    form = ResendConfirmationForm()
+    if form.validate_on_submit():
+        token = current_user.generate_confirmation_token()
+        send_email(current_user.email, 'Confirm Your Email', 'confirm_email', user=current_user, token=token)
+        flash('A new confirmation email has been sent to you.', 'info')
+        return redirect(url_for('unconfirmed'))
+
+    flash('Your email address is not confirmed. Please check your inbox and confirm your email.', 'warning')
+    return render_template('unconfirmed.html', form=form)
+
+@app.route('/reset_password_request', methods=['GET', 'POST'])
+def reset_password_request():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = ResetPasswordRequestForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user:
+            token = user.generate_reset_token()
+            flash('An email with instructions to reset your password has been sent to you.', 'info')
+            return redirect(url_for('login'))
+        else:
+            flash('No account found with that email address.', 'error')
+    return render_template('reset_password_request.html', form=form)
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    if not current_user.is_authenticated:
+        return redirect(url_for('index'))
+
+    form = ResetPasswordForm()
+    user = User.verify_reset_token(token)
+
+    if not user:
+        flash('Invalid or expired reset link.', 'error')
+        return redirect(url_for('reset_password_request'))
+
+    if form.validate_on_submit():
+        user.password = form.password.data
+        db.session.commit()
+        flash('Your password has been updated.', 'success')
+        return redirect(url_for('login'))
+
+    send_email(user.email, 'Reset Your Password', 'reset_password', user=user, token=token)
+    return render_template('reset_password.html', form=form, user=user, token=token)
 
 @app.route('/dashboard')
 @login_required
@@ -141,16 +290,30 @@ def upload_file():
 def create_form():
     selected_cells = request.json.get('selected_cells', [])
     unique_filename = request.json.get('unique_filename', '')
+    send_email = request.json.get('send_email', False)
+    allow_download = request.json.get('allow_download', True)
     form_id = str(uuid.uuid4())
     form_url = url_for('fill_form', form_id=form_id, _external=True)
     form_name = f"Form {form_id}"
-    form_response = FormResponse(form_id=form_id, form_name=form_name, form_link=form_url,
-                                 selected_cells=','.join(selected_cells), unique_filename=unique_filename,
-                                 user_id=current_user.id)
+    form_response = FormResponse(
+        form_id=form_id,
+        form_name=form_name,
+        form_link=form_url,
+        selected_cells=','.join(selected_cells),
+        unique_filename=unique_filename,
+        user_id=current_user.id,
+        send_email=send_email,
+        allow_download=allow_download
+    )
     db.session.add(form_response)
     db.session.commit()
-    return jsonify({'form_url': form_url, 'selected_cells': selected_cells, 'unique_filename': unique_filename,
-                    'form_id': form_id, 'form_name': form_name})
+    return jsonify({
+        'form_url': form_url,
+        'selected_cells': selected_cells,
+        'unique_filename': unique_filename,
+        'form_id': form_id,
+        'form_name': form_name
+    })
 
 @app.route('/fill_form/<form_id>', methods=['GET', 'POST'])
 def fill_form(form_id):
@@ -180,7 +343,19 @@ def fill_form(form_id):
             document.save(temp_file.name)
             temp_file.close()
 
-            return send_file(temp_file.name, as_attachment=True)
+            if form_response.send_email:
+                user = User.query.get(form_response.user_id)
+                if user:
+                    msg = Message('Modified File', recipients=[user.email])
+                    msg.body = 'Please find the attached modified file.'
+                    with open(temp_file.name, 'rb') as f:
+                        msg.attach(form_response.form_name + '.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', f.read())
+                    mail.send(msg)
+
+            if form_response.allow_download:
+                return send_file(temp_file.name, as_attachment=True)
+            else:
+                return 'File modification completed, but download is not allowed.'
         else:
             abort(404)
     else:
@@ -210,27 +385,40 @@ def update_form(form_id):
     form_response = FormResponse.query.filter_by(form_id=form_id, user_id=current_user.id).first()
     if form_response:
         form = UpdateFormForm()
+
         if request.method == 'POST':
+            form_response.form_name = form.form_name.data
             selected_cells = form.selected_cells.data
             form_response.selected_cells = ','.join(selected_cells)
             db.session.commit()
             flash('Form updated successfully.', 'success')
             return redirect(url_for('dashboard'))
         else:
-            form.selected_cells.choices = [(cell, cell) for cell in form_response.selected_cells.split(',')]
+            # Fetch unique cell values from all form responses
+            all_cells = set()
+            for response in FormResponse.query.all():
+                cells = response.selected_cells.split(',')
+                all_cells.update(cells)
+            
+            form.selected_cells.choices = [(cell, cell) for cell in all_cells]
+
+            # Preselect cells based on existing data
+            existing_selected = form_response.selected_cells.split(',') if form_response.selected_cells else []
+            form.selected_cells.data = existing_selected
+            form.form_name.data = form_response.form_name
             return render_template('update_form.html', form=form)
     else:
         flash('Form not found.', 'error')
         return redirect(url_for('dashboard'))
 
-# Initialize Database
-def init_db():
-    db_file_path = os.path.join(basedir, 'instance', 'database.db')
-    if not os.path.exists(db_file_path):
-        with app.app_context():
-            db.create_all()
+def send_email(to, subject, template, **kwargs):
+    msg = Message(subject, recipients=[to])
+    msg.body = render_template(template + '.txt', **kwargs)
+    msg.html = render_template(template + '.html', **kwargs)
+    mail.send(msg)
 
-init_db()
+with app.app_context():
+    db.create_all()
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)

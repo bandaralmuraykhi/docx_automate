@@ -7,8 +7,12 @@
     <form method="POST">
         {{ form.hidden_tag() }}
         <div>
+            {{ form.form_name.label }}<br>
+            {{ form.form_name(size=32) }}
+        </div>
+        <div>
             {{ form.selected_cells.label }}<br>
-            {{ form.selected_cells(size=10) }}
+            {{ form.selected_cells(size=8) }}
         </div>
         <div>
             {{ form.submit() }}

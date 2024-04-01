@@ -6,8 +6,8 @@
     <h1>Dashboard</h1>
     <h2>Form Responses</h2>
     {% if form_responses %}
-        <table>
-            <thead>
+        <table class="table table-hover">
+            <thead class="thead-dark">
                 <tr>
                     <th>Form ID</th>
                     <th>Form Name</th>
@@ -20,10 +20,10 @@
                     <tr>
                         <td>{{ response.form_id }}</td>
                         <td>{{ response.form_name }}</td>
-                        <td><a href="{{ response.form_link }}" target="_blank">{{ response.form_link }}</a></td>
+                        <td><a href="{{ response.form_link }}" target="_blank">View Form</a></td>
                         <td>
-                            <a href="{{ url_for('delete_form', form_id=response.form_id) }}">Delete</a>
-                            <a href="{{ url_for('update_form', form_id=response.form_id) }}">Update Selected Cells</a>
+                            <a href="{{ url_for('update_form', form_id=response.form_id) }}" class="btn btn-primary btn-sm">Edit</a>
+                            <a href="{{ url_for('delete_form', form_id=response.form_id) }}" class="btn btn-danger btn-sm">Delete</a>
                         </td>
                     </tr>
                 {% endfor %}

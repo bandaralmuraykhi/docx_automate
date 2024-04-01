@@ -3,6 +3,8 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-    <h1>Welcome to the Application</h1>
-    <p>Please <a href="{{ url_for('login') }}">log in</a> or <a href="{{ url_for('signup') }}">sign up</a> to access the file upload and form creation functionality.</p>
+    <div class="text-center mt-5">
+        <h1 class="display-4">Welcome to Dynamic Form Generator</h1>
+        <p class="lead">Please <a href="{{ url_for('login') }}" class="btn btn-primary">Log in</a> or <a href="{{ url_for('signup') }}" class="btn btn-secondary">Sign up</a> to access the file upload and form creation functionality.</p>
+    </div>
 {% endblock %}

@@ -1,0 +1,4 @@
+<p>Dear {{ user.email }},</p>
+<p>Welcome to the application! To confirm your email address, please click on the following link:</p>
+<p><a href="{{ url_for('confirm', token=token, _external=True) }}">Confirm Email</a></p>
+<p>If you did not sign up for this application, please ignore this email.</p>

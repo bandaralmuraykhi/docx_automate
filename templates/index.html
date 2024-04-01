@@ -3,18 +3,44 @@
 {% block title %}File Upload{% endblock %}
 
 {% block content %}
+    <style>
+        .cell {
+            cursor: pointer;
+        }
+        .table-container {
+            overflow-x: auto; /* Makes the table scrollable horizontally */
+        }
+        .selected {
+            background-color: #007bff; /* Bootstrap primary color */
+            color: white;
+        }
+    </style>
     <h1>Upload a .docx File</h1>
-    <form>
-        <input type="file" name="file">
-        <input type="submit" value="Upload">
+    <form enctype="multipart/form-data" class="mb-3">
+        <input type="file" name="file" class="form-control-file mb-2">
+        <input type="submit" value="Upload" class="btn btn-primary">
     </form>
-    <div id="table-data"></div>
-    <button id="submit-cells" style="display: none;">Submit Selected Cells</button>
-    <div id="form-url"></div>
+    <div class="table-container">
+        <div id="table-data" class="mb-3"></div>
+    </div>
+    <div id="options" class="mb-3" style="display: none;">
+        <div class="form-check">
+            <input type="checkbox" id="send-email" name="send_email" class="form-check-input">
+            <label for="send-email" class="form-check-label">Send modified files to email</label>
+        </div>
+        <div class="form-check">
+            <input type="checkbox" id="allow-download" name="allow_download" class="form-check-input" checked>
+            <label for="allow-download" class="form-check-label">Allow visitors to download modified files</label>
+        </div>
+        <button id="submit-cells" class="btn btn-success mt-2" style="display: none;">Submit Selected Cells</button>
+    </div>
+    <div id="selected-cells" class="mb-3"></div>
+    <div id="form-url" class="mt-3"></div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         var uniqueFilename = '';
+        var selectedCells = [];
 
         $(document).ready(function() {
             $('form').submit(function(event) {
@@ -29,31 +55,76 @@
                     success: function(data) {
                         var tableData = data.table_data;
                         uniqueFilename = data.unique_filename;
-                        var selectElement = '<select name="selected_cells" multiple>';
+                        var tableHtml = '<table class="table">';
+                        tableHtml += '<thead><tr><th>Select</th><th>Cell Content</th></tr></thead><tbody>';
+                        // Part of the success function in the AJAX call
                         for (var i = 0; i < tableData.length; i++) {
                             var row = tableData[i];
                             for (var j = 0; j < row.length; j++) {
                                 var cellText = row[j];
-                                selectElement += '<option value="' + cellText + '">' + cellText + '</option>';
+                                tableHtml += '<tr data-cell="' + cellText + '"><td><input type="checkbox" class="cell-checkbox" data-cell="' + cellText + '"></td><td>' + cellText + '</td></tr>';
                             }
                         }
-                        selectElement += '</select>';
-                        $('#table-data').html(selectElement);
+
+                        tableHtml += '</tbody></table>';
+                        $('#table-data').html(tableHtml);
+                        $('#options').show();
                         $('#submit-cells').show();
                     }
                 });
             });
+        
+            $(document).on('click', 'tr', function(e) {
+                // Check if the clicked element is the checkbox
+                if ($(e.target).hasClass('cell-checkbox')) {
+                    // If it's the checkbox, no additional action is needed here
+                    // as the checkbox's default behavior will already toggle its state
+                    return;
+                }
+
+                var checkbox = $(this).find('.cell-checkbox');
+                checkbox.prop('checked', !checkbox.prop('checked'));
+
+                // Rest of the cell selection logic
+                var cellText = checkbox.data('cell');
+                var index = selectedCells.indexOf(cellText);
+                if (checkbox.is(':checked')) {
+                    if (index === -1) {
+                        selectedCells.push(cellText);
+                        $(this).addClass('selected');  // Highlight the row
+                    }
+                } else {
+                    if (index > -1) {
+                        selectedCells.splice(index, 1);
+                        $(this).removeClass('selected');  // Remove highlight from the row
+                    }
+                }
+                updateSelectedCellsDisplay();
+            });
+
+            function updateSelectedCellsDisplay() {
+                var displayText = selectedCells.join(', ');
+                $('#selected-cells').text('Selected Cells: ' + displayText);
+            }
 
             $('#submit-cells').click(function() {
-                var selectedCells = $('select[name="selected_cells"]').val();
+                var sendEmail = $('#send-email').is(':checked');
+                var allowDownload = $('#allow-download').is(':checked');
                 $.ajax({
                     url: '/create_form',
                     type: 'POST',
-                    data: JSON.stringify({selected_cells: selectedCells, unique_filename: uniqueFilename}),
+                    data: JSON.stringify({
+                        selected_cells: selectedCells,
+                        unique_filename: uniqueFilename,
+                        send_email: sendEmail,
+                        allow_download: allowDownload
+                    }),
                     contentType: 'application/json',
                     success: function(data) {
                         var formUrl = data.form_url + '?selected_cells=' + encodeURIComponent(selectedCells.join(',')) + '&unique_filename=' + encodeURIComponent(uniqueFilename);
-                        $('#form-url').html('Form URL: <a href="' + formUrl + '" target="_blank">' + formUrl + '</a>');
+                        // Create a button for the URL
+                        var urlButton = '<a href="' + formUrl + '" target="_blank" class="btn btn-success mt-2">Open Form</a>';
+                        $('#form-url').html(urlButton);
                     }
                 });
             });

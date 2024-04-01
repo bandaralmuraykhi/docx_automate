@@ -1,0 +1,7 @@
+Dear {{ user.email }},
+
+Welcome to the application! To confirm your email address, please click on the following link:
+
+{{ url_for('confirm', token=token, _external=True) }}
+
+If you did not sign up for this application, please ignore this email.
