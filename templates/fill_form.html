@@ -7,7 +7,7 @@
     <form action="{{ url_for('fill_form', form_id=form_id) }}" method="POST" class="mb-3">
         {% for cell in selected_cells %}
             <div class="form-group">
-                <label for="{{ cell }}">{{ cell }}:</label>
+                <label for="{{ cell }}">{{ cell }}</label>
                 <input type="text" name="{{ cell }}" id="{{ cell }}" class="form-control">
             </div>
         {% endfor %}

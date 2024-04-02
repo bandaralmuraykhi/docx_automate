@@ -7,7 +7,6 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_mail import Mail, Message
 from flask_wtf import FlaskForm
-from flask_bootstrap import Bootstrap
 from wtforms import StringField, PasswordField, SubmitField, SelectMultipleField
 from wtforms.validators import DataRequired, Length, Email, EqualTo
 from docx import Document
@@ -15,9 +14,8 @@ from itsdangerous import URLSafeTimedSerializer as Serializer
 
 app = Flask(__name__)
 app.static_folder = ''
-bootstrap = Bootstrap(app)
 # Access the environment variable `export FLASK_SECRET_KEY=your_secret_key_here`
-app.config['SECRET_KEY'] = '88m#2***4Q5^'
+app.config['SECRET_KEY'] = 'FLASK_SECRET_KEY'
 # app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY')
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'instance', 'database.db')
@@ -183,7 +181,6 @@ def login():
             flash('Invalid email or password. Please try again.')
     return render_template('login.html', form=form)
 
-
 @app.route('/logout')
 @login_required
 def logout():
@@ -220,6 +217,7 @@ def reset_password_request():
         user = User.query.filter_by(email=form.email.data).first()
         if user:
             token = user.generate_reset_token()
+            send_email_reset(user.email, 'Reset Your Password', 'reset_password', user=user, token=token)
             flash('An email with instructions to reset your password has been sent to you.', 'info')
             return redirect(url_for('login'))
         else:
@@ -228,24 +226,28 @@ def reset_password_request():
 
 @app.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
-    if not current_user.is_authenticated:
+    if current_user.is_authenticated:
         return redirect(url_for('index'))
 
-    form = ResetPasswordForm()
     user = User.verify_reset_token(token)
-
     if not user:
         flash('Invalid or expired reset link.', 'error')
         return redirect(url_for('reset_password_request'))
 
+    form = ResetPasswordForm()
     if form.validate_on_submit():
-        user.password = form.password.data
+        # Generate a new salt
+        salt = generate_salt()
+        # Hash the new password with the generated salt
+        hashed_password = hash_password(form.password.data, salt)
+        # Update the user's password and salt
+        user.password = hashed_password
+        user.salt = salt
         db.session.commit()
         flash('Your password has been updated.', 'success')
         return redirect(url_for('login'))
 
-    send_email(user.email, 'Reset Your Password', 'reset_password', user=user, token=token)
-    return render_template('reset_password.html', form=form, user=user, token=token)
+    return render_template('reset_password.html', form=form, user=user)
 
 @app.route('/dashboard')
 @login_required
@@ -387,26 +389,19 @@ def update_form(form_id):
     form_response = FormResponse.query.filter_by(form_id=form_id, user_id=current_user.id).first()
     if form_response:
         form = UpdateFormForm()
-
         if request.method == 'POST':
             form_response.form_name = form.form_name.data
-            selected_cells = form.selected_cells.data
+            selected_cells = request.form.getlist('selected_cells')  # Get selected cells from the form
             form_response.selected_cells = ','.join(selected_cells)
             db.session.commit()
             flash('Form updated successfully.', 'success')
             return redirect(url_for('dashboard'))
         else:
-            # Fetch unique cell values from all form responses
-            all_cells = set()
-            for response in FormResponse.query.all():
-                cells = response.selected_cells.split(',')
-                all_cells.update(cells)
-            
+            # Fetch unique cell values from the current form response
+            all_cells = set(form_response.selected_cells.split(','))
             form.selected_cells.choices = [(cell, cell) for cell in all_cells]
-
             # Preselect cells based on existing data
-            existing_selected = form_response.selected_cells.split(',') if form_response.selected_cells else []
-            form.selected_cells.data = existing_selected
+            form.selected_cells.data = form_response.selected_cells.split(',')
             form.form_name.data = form_response.form_name
             return render_template('update_form.html', form=form)
     else:
@@ -417,6 +412,12 @@ def send_email(to, subject, template, **kwargs):
     msg = Message(subject, recipients=[to])
     msg.body = render_template(template + '.txt', **kwargs)
     msg.html = render_template(template + '.html', **kwargs)
+    mail.send(msg)
+
+def send_email_reset(to, subject, template, **kwargs):
+    msg = Message(subject, recipients=[to])
+    msg.body = render_template(template + '.txt', **kwargs)
+    msg.html = render_template(template + '_email.html', **kwargs)
     mail.send(msg)
 
 with app.app_context():

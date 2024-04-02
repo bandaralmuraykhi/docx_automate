@@ -3,19 +3,76 @@
 {% block title %}Update Form{% endblock %}
 
 {% block content %}
-    <h1>Update Form</h1>
-    <form method="POST">
-        {{ form.hidden_tag() }}
-        <div>
-            {{ form.form_name.label }}<br>
-            {{ form.form_name(size=32) }}
+<h1>Update Form</h1>
+
+<form method="POST" class="mb-3">
+    {{ form.hidden_tag() }}
+    <div class="form-group">
+        {{ form.form_name.label(class="form-label") }}
+        {{ form.form_name(class="form-control") }}
+    </div>
+    <div class="form-group">
+        <label class="form-label">Selected Cells</label>
+        <div id="cell-container">
+            {% for cell in form.selected_cells.choices %}
+            <span class="cell-item {% if cell[0] in form.selected_cells.data %} selected {% endif %}" data-value="{{ cell[0] }}">{{ cell[1] }}</span>
+            {% endfor %}
         </div>
-        <div>
-            {{ form.selected_cells.label }}<br>
-            {{ form.selected_cells(size=8) }}
-        </div>
-        <div>
-            {{ form.submit() }}
-        </div>
-    </form>
+        <select multiple class="form-control" id="selected_cells" name="selected_cells" style="display: none;">
+            {% for cell in form.selected_cells.choices %}
+            <option value="{{ cell[0] }}" {% if cell[0] in form.selected_cells.data %} selected {% endif %}>{{ cell[1] }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        {{ form.submit(class="btn btn-primary") }}
+    </div>
+</form>
+
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<div class="alert alert-info">
+    {% for message in messages %}
+    {{ message }}
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<style>
+    .cell-item {
+        display: inline-block;
+        padding: 5px 10px;
+        margin: 5px;
+        background-color: #f1f1f1;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    .cell-item.selected {
+        background-color: #007bff;
+        color: #fff;
+    }
+</style>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('.cell-item').click(function() {
+            $(this).toggleClass('selected');
+            updateSelectedCells();
+        });
+
+        function updateSelectedCells() {
+            $('#selected_cells').empty();
+            $('.cell-item.selected').each(function() {
+                var value = $(this).data('value');
+                $('#selected_cells').append($('<option>', {
+                    value: value,
+                    text: value,
+                    selected: true
+                }));
+            });
+        }
+    });
+</script>
 {% endblock %}

@@ -1,20 +1,21 @@
 {% extends 'base.html' %}
-{% import 'bootstrap/wtf.html' as wtf %}
 
 {% block content %}
-<div class="container">
+<div>
     <h1>Unconfirmed Email</h1>
     {% with messages = get_flashed_messages(with_categories=True) %}
         {% if messages %}
             {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">{{ message }}</div>
+                <div>{{ message }}</div>
             {% endfor %}
         {% endif %}
     {% endwith %}
     <p>Please confirm your email address to access your account.</p>
     <form method="POST">
         {{ form.hidden_tag() }}
-        {{ wtf.form_field(form.submit, button_map={'submit': 'primary'}) }}
+        <div>
+            <input type="submit" value="{{ form.submit.label.text }}">
+        </div>
     </form>
 </div>
 {% endblock %}
