@@ -5,57 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Dynamic Form Gen{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/bulma/css/bulma.min.css') }}">
-     <style>
-        html {
-            height: 100%;
-        }
-
-        body {
-            display: flex;
-            flex-direction: column;
-            min-height: 100%;
-        }
-
-        .content {
-            flex: 1;
-        }
-    </style>
   </head>
-  <body>
-    <!-- Navigation Bar -->
-    <nav class="navbar">
-      <div class="navbar-brand">
-        <a class="navbar-item" href="{{ url_for('index') }}">
-            <img class="image " src="{{ url_for('static', filename='img/Designer.png') }}" alt="DFG Logi">
-        </a>
+  <body class="	is-justify-content-space-between">
+    <div>
+        <!-- Navigation Bar -->
+        <nav class="navbar">
+          <a class="image is-48x48 m-1" href="{{ url_for('index') }}">
+            <figur>
+              <img class="reversible-image p-0" src="{{ url_for('static', filename='img/Designer.png') }}" alt="DFG Logi">
+            </figure>
+          </a>
+          <div id="navbarMenuHeroA" class="navbar-menu">
+            <div class="navbar-start">
+              {% if current_user.is_authenticated %}
+                <a class="navbar-item" href="{{ url_for('dashboard') }}">Dashboard</a>
+                <a class="navbar-item" href="{{ url_for('logout') }}">Logout</a>
+              {% else %}
+                <a class="navbar-item" href="{{ url_for('login') }}">Login</a>
+                <a class="navbar-item" href="{{ url_for('signup') }}">Sign Up</a>
+                <a class="navbar-item" href="{{ url_for('reset_password_request') }}">Forgot Password</a>
+              {% endif %}
+            </div>
+          </div>
+        </nav>
+
+        <!-- Main Content -->
+        {% block content %}
+
+        {% endblock %}
+        <!-- footer -->
+        <footer class="footer has-background-primary has-text-primary-invert m-0 p-1">
+          <div class="content has-text-centered">
+            &copy; 2024 Dynamic Form Gen | All rights reserved
+          </div>
+        </footer>
+
+        <script src="{{ url_for('static', filename='node_modules/bulma/bulma.js') }}"></script>
       </div>
-
-      <div id="navbarMenuHeroA" class="navbar-menu">
-        <div class="navbar-start">
-          <a class="navbar-item" href="{{ url_for('index') }}">Home</a>
-          {% if current_user.is_authenticated %}
-            <a class="navbar-item" href="{{ url_for('dashboard') }}">Dashboard</a>
-            <a class="navbar-item" href="{{ url_for('logout') }}">Logout</a>
-          {% else %}
-            <a class="navbar-item" href="{{ url_for('login') }}">Login</a>
-            <a class="navbar-item" href="{{ url_for('signup') }}">Sign Up</a>
-            <a class="navbar-item" href="{{ url_for('reset_password_request') }}">Forgot Password</a>
-          {% endif %}
-        </div>
-      </div>
-    </nav>
-
-    <!-- Main Content -->
-    {% block content %}
-
-    {% endblock %}
-    <!-- footer -->
-    <div class="div has-background-primary has-text-primary-invert m-0 p-1">
-      <div class="content has-text-centered">
-        &copy; 2024 Dynamic Form Gen | All rights reserved
-      </div>
-    </div>
-
-    <script src="{{ url_for('static', filename='node_modules/bulma/bulma.js') }}"></script>
   </body>
 </html>

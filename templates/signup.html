@@ -1,33 +1,56 @@
-{% extends 'base.html' %}
+{% extends 'base.html' %} 
 
-{% block title %}Sign Up{% endblock %}
+{% block title %}Sign Up{% endblock %} {% block
+content %}
 
-{% block content %}
-    <h1 class="mb-3">Sign Up</h1>
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="alert alert-info" role="alert">
-                {% for message in messages %}
-                    {{ message }}<br>
-                {% endfor %}
-            </div>
+<section class="section">
+  <div class="container">
+    <h1 class="title">Sign Up</h1>
+    {% with messages = get_flashed_messages() %} {% if messages %}
+    <article class="message is-info">
+      <div class="message-body">
+        {% for message in messages %}
+        <p>{{ message }}</p>
+        {% endfor %}
+      </div>
+    </article>
+    {% endif %} {% endwith %}
+    <form method="POST" action="{{ url_for('signup') }}">
+      {{ form.hidden_tag() }}
+      <div class="field">
+        {{ form.email.label(class="label") }} {{ form.email(class="input") }} {%
+        if form.email.errors %}
+        <div class="help is-danger">
+          {% for error in form.email.errors %}
+          <p>{{ error }}</p>
+          {% endfor %}
+        </div>
         {% endif %}
-    {% endwith %}
-    <form method="POST" action="{{ url_for('signup') }}" class="mb-3">
-        {{ form.hidden_tag() }}
-        <div class="form-group">
-            {{ form.email.label(class="form-label") }}
-            {{ form.email(class="form-control") }}
+      </div>
+      <div class="field">
+        {{ form.password.label(class="label") }} {{ form.password(class="input")
+        }} {% if form.password.errors %}
+        <div class="help is-danger">
+          {% for error in form.password.errors %}
+          <p>{{ error }}</p>
+          {% endfor %}
         </div>
-        <div class="form-group">
-            {{ form.password.label(class="form-label") }}
-            {{ form.password(class="form-control") }}
+        {% endif %}
+      </div>
+      <div class="field">
+        {{ form.confirm_password.label(class="label") }} {{
+        form.confirm_password(class="input") }} {% if
+        form.confirm_password.errors %}
+        <div class="help is-danger">
+          {% for error in form.confirm_password.errors %}
+          <p>{{ error }}</p>
+          {% endfor %}
         </div>
-        <div class="form-group">
-            {{ form.confirm_password.label(class="form-label") }}
-            {{ form.confirm_password(class="form-control") }}
-        </div>
-        {{ form.submit(class="btn btn-primary") }}
+        {% endif %}
+      </div>
+      {{ form.submit(class="button is-primary") }}
     </form>
     <p>Already have an account? <a href="{{ url_for('login') }}">Log In</a></p>
+  </div>
+</section>
 {% endblock %}
