@@ -6,24 +6,25 @@
     <title>{% block title %}Dynamic Form Gen{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/bulma/css/bulma.min.css') }}">
   </head>
-  <body class="	is-justify-content-space-between">
+  <body class="is-justify-content-space-between">
     <div>
         <!-- Navigation Bar -->
         <nav class="navbar">
-          <a class="image is-48x48 m-1" href="{{ url_for('index') }}">
-            <figur>
-              <img class="reversible-image p-0" src="{{ url_for('static', filename='img/Designer.png') }}" alt="DFG Logi">
+          <a class="image is-48x48 m-1" href="{{ url_for('home') }}">
+            <figure>
+              <img class="reversible-image p-0" src="{{ url_for('static', filename='img/Designer.png') }}" alt="DFG Logo">
             </figure>
           </a>
           <div id="navbarMenuHeroA" class="navbar-menu">
             <div class="navbar-start">
+              <a class="navbar-item" href="{{ url_for('home') }}">Home</a>
               {% if current_user.is_authenticated %}
+                <a class="navbar-item" href="{{ url_for('index') }}">Upload</a>
                 <a class="navbar-item" href="{{ url_for('dashboard') }}">Dashboard</a>
                 <a class="navbar-item" href="{{ url_for('logout') }}">Logout</a>
               {% else %}
                 <a class="navbar-item" href="{{ url_for('login') }}">Login</a>
                 <a class="navbar-item" href="{{ url_for('signup') }}">Sign Up</a>
-                <a class="navbar-item" href="{{ url_for('reset_password_request') }}">Forgot Password</a>
               {% endif %}
             </div>
           </div>

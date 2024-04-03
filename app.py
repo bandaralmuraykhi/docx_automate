@@ -134,11 +134,13 @@ class ResetPasswordForm(FlaskForm):
     submit = SubmitField('Reset Password')
 
 @app.route('/')
+def home():
+    return render_template('home.html')
+
+@app.route('/upload')
+@login_required
 def index():
-    if current_user.is_authenticated:
-        return render_template('index.html')
-    else:
-        return render_template('home.html')
+    return render_template('index.html')
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -174,7 +176,7 @@ def login():
             if hashed_password == user.password:
                 if user.confirmed:
                     login_user(user)
-                    return redirect(url_for('index'))
+                    return redirect(url_for('home'))
                 else:
                     flash('Please confirm your email address to access your account.', 'warning')
                     return redirect(url_for('unconfirmed', email=user.email))
@@ -187,7 +189,7 @@ def login():
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('index'))
+    return redirect(url_for('login'))
 
 @app.route('/confirm/<token>')
 def confirm(token):
