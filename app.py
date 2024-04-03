@@ -159,7 +159,8 @@ def signup():
         token = new_user.generate_confirmation_token()
         send_email(new_user.email, 'Confirm Your Email', 'confirm_email', user=new_user, token=token)
         flash('A confirmation email has been sent to you.', 'info')
-        return redirect(url_for('unconfirmed'))
+        return redirect(url_for('unconfirmed', email=new_user.email))
+    
     return render_template('signup.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -176,9 +177,10 @@ def login():
                     return redirect(url_for('index'))
                 else:
                     flash('Please confirm your email address to access your account.', 'warning')
-                    return redirect(url_for('unconfirmed'))
+                    return redirect(url_for('unconfirmed', email=user.email))
         else:
             flash('Invalid email or password. Please try again.')
+    
     return render_template('login.html', form=form)
 
 @app.route('/logout')
@@ -198,13 +200,22 @@ def confirm(token):
 
 @app.route('/unconfirmed', methods=['GET', 'POST'])
 def unconfirmed():
+    email = request.args.get('email')
+    user = User.query.filter_by(email=email).first()
+    
+    if user and user.confirmed:
+        return redirect(url_for('index'))
+    
     form = ResendConfirmationForm()
     if form.validate_on_submit():
-        token = current_user.generate_confirmation_token()
-        send_email(current_user.email, 'Confirm Your Email', 'confirm_email', user=current_user, token=token)
-        flash('A new confirmation email has been sent to you.', 'info')
-        return redirect(url_for('unconfirmed'))
-
+        if user:
+            token = user.generate_confirmation_token()
+            send_email(user.email, 'Confirm Your Email', 'confirm_email', user=user, token=token)
+            flash('A new confirmation email has been sent to you.', 'info')
+        else:
+            flash('User not found. Please sign up again.', 'error')
+        return redirect(url_for('unconfirmed', email=email))
+    
     flash('Your email address is not confirmed. Please check your inbox and confirm your email.', 'warning')
     return render_template('unconfirmed.html', form=form)
 
