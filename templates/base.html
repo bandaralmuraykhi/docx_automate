@@ -12,20 +12,12 @@
 
     <style>
         /* Your custom CSS styles here */
-        /* Example media query for mobile devices */
         @media only screen and (max-width: 768px) {
-            /* Add specific styles for mobile devices here */
             .navbar-menu {
-                /* Example: hide the menu on mobile by default */
                 display: none;
             }
-            /* Example: show hamburger icon on mobile */
             .navbar-burger {
                 display: block;
-            }
-            /* Example: hide desktop logo on mobile */
-            .navbar-brand-desktop {
-                display: none;
             }
         }
         /* Custom styles */
@@ -132,18 +124,56 @@
           background-color: #c68035;
           color: rgba(0, 0, 0, 0.275);
         }
+        #darkModeToggle {
+          cursor: pointer;
+          transition: color 0.3s;
+        }
+
+        #darkModeToggle:hover {
+          color: #3B99FC;
+        }
+
+        #darkModeToggle .icon {
+          font-size: 24px;
+        }
+
+        .logo-container {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 48px;
+          height: 48px;
+        }
+
+        #logo {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            transition: filter 0.3s ease;
+        }
+
+        [data-theme="light"] #logo {
+            filter: invert(1);
+        }
     </style>
     <!-- Set initial theme based on local storage -->
 </head>
 <body class="flex-container tajawal-medium">
     <!-- Navigation Bar -->
     <nav class="navbar">
-        <a class="image is-48x48 m-1" href="{{ url_for('home') }}">
-            <figure>
-                <img class="reversible-image p-0" src="{{ url_for('static', filename='img/Designer.png') }}" alt="DFG Logo">
-            </figure>
-        </a>
-        <div id="navbarMenuHeroA" class="navbar-menu is-active">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="{{ url_for('home') }}">
+              <div class="logo-container">
+                  <img id="logo" src="{{ url_for('static', filename='img/Designer.svg') }}" alt="DFG Logo">
+              </div>
+            </a>
+            <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarMenuHeroA">
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+            </a>
+        </div>
+        <div id="navbarMenuHeroA" class="navbar-menu">
             <div class="navbar-start">
                 <a class="navbar-item" href="{{ url_for('home') }}">Home</a>
                 {% if current_user.is_authenticated %}
@@ -155,12 +185,14 @@
                     <a class="navbar-item" href="{{ url_for('signup') }}">Sign Up</a>
                 {% endif %}
             </div>
-        </div>
-        <div class="navbar-end">
-            <!-- Dark mode toggle button -->
-            <a class="is-white" id="darkModeToggle">
-                <span class="icon" src="Designer.svg">
-            </a>
+            <div class="navbar-end">
+              <!-- Dark mode toggle button -->
+              <a class="navbar-item" id="darkModeToggle">
+                  <span class="icon">
+                      <i class="material-icons">brightness_4</i>
+                  </span>
+              </a>
+            </div>
         </div>
     </nav>
     <!-- Main Content -->
@@ -177,15 +209,15 @@
     <!--scripts-->
     <!--Dark mode switch-->
     <script>
-         // JavaScript to handle navbar toggle on mobile
-         document.addEventListener('DOMContentLoaded', () => {
+        // JavaScript to handle navbar toggle on mobile
+        document.addEventListener('DOMContentLoaded', () => {
             // Get all "navbar-burger" elements
             const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
 
             // Check if there are any navbar burgers
             if ($navbarBurgers.length > 0) {
                 // Add a click event on each of them
-                $navbarBurgers.forEach( el => {
+                $navbarBurgers.forEach(el => {
                     el.addEventListener('click', () => {
                         // Get the target from the "data-target" attribute
                         const target = el.dataset.target;
@@ -198,23 +230,24 @@
                 });
             }
         });
-      const darkModeToggle = document.getElementById('darkModeToggle');
-      const html = document.documentElement;
-      const savedTheme = localStorage.getItem('theme');
 
-      if (savedTheme) {
-          html.setAttribute('data-theme', savedTheme);
-      }
-      
-      darkModeToggle.addEventListener('click', () => {
-          if (html.getAttribute('data-theme') === 'light') {
-              html.setAttribute('data-theme', 'dark');
-              localStorage.setItem('theme', 'dark'); // Save theme to local storage
-          } else {
-              html.setAttribute('data-theme', 'light');
-              localStorage.setItem('theme', 'light'); // Save theme to local storage
-          }
-      });
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const html = document.documentElement;
+        const savedTheme = localStorage.getItem('theme');
+
+        if (savedTheme) {
+            html.setAttribute('data-theme', savedTheme);
+        }
+
+        darkModeToggle.addEventListener('click', () => {
+            if (html.getAttribute('data-theme') === 'light') {
+                html.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark'); // Save theme to local storage
+            } else {
+                html.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light'); // Save theme to local storage
+            }
+        });
     </script>
     <script src="{{ url_for('static', filename='node_modules/bulma/bulma.js') }}"></script>
 </body>

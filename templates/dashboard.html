@@ -60,7 +60,7 @@
                     <tr>
                         <td>{{ response.form_id }}</td>
                         <td>{{ response.form_name }}</td>
-                        <td><a href="{{ response.form_link }}" target="_blank" class="button is-info">View Form</a></td>
+                        <td><a href="{{ response.form_link }}" class="button is-info">View Form</a></td>
                         <td>
                             <a href="{{ url_for('update_form', form_id=response.form_id) }}" class="button is-warning">Edit</a>
                             <a href="{{ url_for('delete_form', form_id=response.form_id) }}" class="button is-danger">Delete</a>

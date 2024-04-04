@@ -155,7 +155,7 @@
                     success: function(data) {
                         var formUrl = data.form_url + '?selected_cells=' + encodeURIComponent(selectedCells.join(',')) + '&unique_filename=' + encodeURIComponent(uniqueFilename);
                         // Create a button for the URL
-                        var urlButton = '<a href="' + formUrl + '" target="_blank" class="button is-light">Open your custom Form</a>';
+                        var urlButton = '<a href="' + formUrl + '" class="button is-light">Open your custom Form</a>';
                         $('#form-url').html(urlButton);
                     }
                 });

@@ -5,7 +5,7 @@
 {% block content %}
 <div class="m-3">
     <h1 class="title">Fill The Form</h1>
-    <form action="/fill_form/42e141fc-f39e-4856-857f-c7219637f4cc" method="POST" class="mb-3" style="display: inline-grid;">
+    <form action="{{ url_for('fill_form', form_id=form_id) }}" method="POST" class="mb-3" style="display: inline-grid;">
         {% for cell in selected_cells %}
             <div class="field">
                 <label class="label" for="{{ cell }}">{{ cell }}</label>

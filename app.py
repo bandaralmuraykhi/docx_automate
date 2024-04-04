@@ -19,6 +19,7 @@ app.config['SECRET_KEY'] = 'FLASK_SECRET_KEY'
 # app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY')
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'instance', 'database.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
@@ -146,23 +147,27 @@ def upload():
 def signup():
     form = SignupForm()
     if form.validate_on_submit():
-        existing_user = User.query.filter_by(email=form.email.data).first()
-        if existing_user:
-            flash('Email address already exists. Please log in.')
-            return redirect(url_for('login'))
-        
-        # Generating salt and hashing the password
-        salt = generate_salt()
-        hashed_password = hash_password(form.password.data, salt)
-        new_user = User(email=form.email.data, password=hashed_password, salt=salt)
-        
-        db.session.add(new_user)
-        db.session.commit()
-        token = new_user.generate_confirmation_token()
-        send_email(new_user.email, 'Confirm Your Email', 'confirm_email', user=new_user, token=token)
-        flash('A confirmation email has been sent to you.', 'info')
-        return redirect(url_for('unconfirmed', email=new_user.email))
-    
+        try:
+            existing_user = User.query.filter_by(email=form.email.data).first()
+            if existing_user:
+                flash('Email address already exists. Please log in.', 'warning')
+                return redirect(url_for('login'))
+
+            salt = generate_salt()
+            hashed_password = hash_password(form.password.data, salt)
+            new_user = User(email=form.email.data, password=hashed_password, salt=salt)
+            db.session.add(new_user)
+            db.session.commit()
+
+            token = new_user.generate_confirmation_token()
+            send_email(new_user.email, 'Confirm Your Email', 'confirm_email', user=new_user, token=token)
+            flash('A confirmation email has been sent to you.', 'success')
+            return redirect(url_for('unconfirmed', email=new_user.email))
+        except Exception as e:
+            db.session.rollback()
+            flash('An error occurred during signup. Please try again.', 'danger')
+            app.logger.error(f"Signup error: {str(e)}")
+
     return render_template('signup.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -171,53 +176,71 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user:
-            # Hashing the provided password with the stored salt
             hashed_password = hash_password(form.password.data, user.salt)
             if hashed_password == user.password:
                 if user.confirmed:
                     login_user(user)
+                    flash('Login successful.', 'success')
                     return redirect(url_for('home'))
                 else:
                     flash('Please confirm your email address to access your account.', 'warning')
                     return redirect(url_for('unconfirmed', email=user.email))
+            else:
+                flash('Invalid password. Please try again.', 'danger')
         else:
-            flash('Invalid email or password. Please try again.')
-    
+            flash('Invalid email. Please try again.', 'danger')
+
     return render_template('login.html', form=form)
 
 @app.route('/logout')
 @login_required
 def logout():
-    logout_user()
-    return redirect(url_for('login'))
+    try:
+        logout_user()
+        flash('You have been logged out.', 'success')
+        return redirect(url_for('login'))
+    except Exception as e:
+        flash('An error occurred during logout.', 'danger')
+        app.logger.error(f"Logout error: {str(e)}")
+        return redirect(url_for('home'))
 
 @app.route('/confirm/<token>')
 def confirm(token):
-    user = User.query.filter_by(confirmed=False).first()
-    if user and user.confirm(token):
-        flash('Your email has been confirmed.', 'success')
-    else:
-        flash('The confirmation link is invalid or has expired.', 'error')
+    try:
+        user = User.query.filter_by(confirmed=False).first()
+        if user and user.confirm(token):
+            flash('Your email has been confirmed.', 'success')
+        else:
+            flash('The confirmation link is invalid or has expired.', 'danger')
+    except Exception as e:
+        flash('An error occurred during email confirmation.', 'danger')
+        app.logger.error(f"Email confirmation error: {str(e)}")
+
     return redirect(url_for('login'))
 
 @app.route('/unconfirmed', methods=['GET', 'POST'])
 def unconfirmed():
     email = request.args.get('email')
     user = User.query.filter_by(email=email).first()
-    
+
     if user and user.confirmed:
         return redirect(url_for('upload'))
-    
+
     form = ResendConfirmationForm()
     if form.validate_on_submit():
         if user:
-            token = user.generate_confirmation_token()
-            send_email(user.email, 'Confirm Your Email', 'confirm_email', user=user, token=token)
-            flash('A new confirmation email has been sent to you.', 'info')
+            try:
+                token = user.generate_confirmation_token()
+                send_email(user.email, 'Confirm Your Email', 'confirm_email', user=user, token=token)
+                flash('A new confirmation email has been sent to you.', 'success')
+            except Exception as e:
+                flash('An error occurred while sending the confirmation email.', 'danger')
+                app.logger.error(f"Confirmation email sending error: {str(e)}")
         else:
-            flash('User not found. Please sign up again.', 'error')
+            flash('User not found. Please sign up again.', 'danger')
+
         return redirect(url_for('unconfirmed', email=email))
-    
+
     flash('Your email address is not confirmed. Please check your inbox and confirm your email.', 'warning')
     return render_template('unconfirmed.html', form=form)
 
@@ -225,16 +248,22 @@ def unconfirmed():
 def reset_password_request():
     if current_user.is_authenticated:
         return redirect(url_for('upload'))
+
     form = ResetPasswordRequestForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user:
-            token = user.generate_reset_token()
-            send_email_reset(user.email, 'Reset Your Password', 'reset_password', user=user, token=token)
-            flash('An email with instructions to reset your password has been sent to you.', 'info')
-            return redirect(url_for('login'))
+            try:
+                token = user.generate_reset_token()
+                send_email_reset(user.email, 'Reset Your Password', 'reset_password', user=user, token=token)
+                flash('An email with instructions to reset your password has been sent to you.', 'success')
+                return redirect(url_for('login'))
+            except Exception as e:
+                flash('An error occurred while sending the password reset email.', 'danger')
+                app.logger.error(f"Password reset email sending error: {str(e)}")
         else:
-            flash('No account found with that email address.', 'error')
+            flash('No account found with that email address.', 'danger')
+
     return render_template('reset_password_request.html', form=form)
 
 @app.route('/reset_password/<token>', methods=['GET', 'POST'])
@@ -244,29 +273,36 @@ def reset_password(token):
 
     user = User.verify_reset_token(token)
     if not user:
-        flash('Invalid or expired reset link.', 'error')
+        flash('Invalid or expired reset link.', 'danger')
         return redirect(url_for('reset_password_request'))
 
     form = ResetPasswordForm()
     if form.validate_on_submit():
-        # Generate a new salt
-        salt = generate_salt()
-        # Hash the new password with the generated salt
-        hashed_password = hash_password(form.password.data, salt)
-        # Update the user's password and salt
-        user.password = hashed_password
-        user.salt = salt
-        db.session.commit()
-        flash('Your password has been updated.', 'success')
-        return redirect(url_for('login'))
+        try:
+            salt = generate_salt()
+            hashed_password = hash_password(form.password.data, salt)
+            user.password = hashed_password
+            user.salt = salt
+            db.session.commit()
+            flash('Your password has been updated.', 'success')
+            return redirect(url_for('login'))
+        except Exception as e:
+            db.session.rollback()
+            flash('An error occurred while updating your password.', 'danger')
+            app.logger.error(f"Password update error: {str(e)}")
 
     return render_template('reset_password.html', form=form, user=user)
 
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    form_responses = FormResponse.query.filter_by(user_id=current_user.id).all()
-    return render_template('dashboard.html', form_responses=form_responses)
+    try:
+        form_responses = FormResponse.query.filter_by(user_id=current_user.id).all()
+        return render_template('dashboard.html', form_responses=form_responses)
+    except Exception as e:
+        flash('An error occurred while loading the dashboard.', 'danger')
+        app.logger.error(f"Dashboard loading error: {str(e)}")
+        return redirect(url_for('upload'))
 
 def allowed_file(filename):
     allowed_extensions = ['docx']
@@ -276,31 +312,45 @@ def allowed_file(filename):
 @login_required
 def upload_file():
     if 'file' not in request.files:
+        flash('No file selected.', 'danger')
         return redirect(url_for('upload'))
+
     file = request.files['file']
     if file.filename == '':
+        flash('No file selected.', 'danger')
         return redirect(url_for('upload'))
+
     if file and allowed_file(file.filename):
         if file.content_length > 10 * 1024 * 1024:  # Limit file size to 10MB
-            abort(413)  # Request Entity Too Large
+            flash('File size exceeds the maximum limit of 10MB.', 'danger')
+            return redirect(url_for('upload'))
+
         unique_filename = str(uuid.uuid4()) + '.docx'
         file_path = os.path.join(UPLOAD_FOLDER, unique_filename)
         file.save(file_path)
-        document = Document(file_path)
-        table_data = []
-        unique_cells = set()
-        for table in document.tables:
-            for row in table.rows:
-                row_data = []
-                for cell in row.cells:
-                    cell_text = cell.text.strip()
-                    if cell_text not in unique_cells:
-                        unique_cells.add(cell_text)
-                        row_data.append(cell_text)
-                if row_data:
-                    table_data.append(row_data)
-        return jsonify({'table_data': table_data, 'unique_filename': unique_filename})
-    return redirect(url_for('upload'))
+
+        try:
+            document = Document(file_path)
+            table_data = []
+            unique_cells = set()
+            for table in document.tables:
+                for row in table.rows:
+                    row_data = []
+                    for cell in row.cells:
+                        cell_text = cell.text.strip()
+                        if cell_text not in unique_cells:
+                            unique_cells.add(cell_text)
+                            row_data.append(cell_text)
+                    if row_data:
+                        table_data.append(row_data)
+            return jsonify({'table_data': table_data, 'unique_filename': unique_filename})
+        except Exception as e:
+            flash('An error occurred while processing the file.', 'danger')
+            app.logger.error(f"File processing error: {str(e)}")
+            return redirect(url_for('upload'))
+    else:
+        flash('Invalid file format. Only .docx files are allowed.', 'danger')
+        return redirect(url_for('upload'))
 
 @app.route('/create_form', methods=['POST'])
 @login_required
@@ -309,6 +359,11 @@ def create_form():
     unique_filename = request.json.get('unique_filename', '')
     send_email = request.json.get('send_email', False)
     allow_download = request.json.get('allow_download', True)
+
+    if not selected_cells or not unique_filename:
+        flash('Invalid form data.', 'danger')
+        return jsonify({'error': 'Invalid form data.'}), 400
+
     form_id = str(uuid.uuid4())
     form_url = url_for('fill_form', form_id=form_id, _external=True)
     form_name = f"Form {form_id}"
@@ -322,22 +377,35 @@ def create_form():
         send_email=send_email,
         allow_download=allow_download
     )
-    db.session.add(form_response)
-    db.session.commit()
-    return jsonify({
-        'form_url': form_url,
-        'selected_cells': selected_cells,
-        'unique_filename': unique_filename,
-        'form_id': form_id,
-        'form_name': form_name
-    })
+
+    try:
+        db.session.add(form_response)
+        db.session.commit()
+        return jsonify({
+            'form_url': form_url,
+            'selected_cells': selected_cells,
+            'unique_filename': unique_filename,
+            'form_id': form_id,
+            'form_name': form_name
+        })
+    except Exception as e:
+        db.session.rollback()
+        flash('An error occurred while creating the form.', 'danger')
+        app.logger.error(f"Form creation error: {str(e)}")
+        return jsonify({'error': 'An error occurred while creating the form.'}), 500
 
 @app.route('/fill_form/<form_id>', methods=['GET', 'POST'])
 def fill_form(form_id):
+    form_response = FormResponse.query.filter_by(form_id=form_id).first()
+
+    if not form_response:
+        flash('Form not found.', 'danger')
+        return redirect(url_for('upload'))
+
     if request.method == 'POST':
         form_data = request.form
-        form_response = FormResponse.query.filter_by(form_id=form_id).first()
-        if form_response:
+
+        try:
             file_path = os.path.join(UPLOAD_FOLDER, form_response.unique_filename)
             document = Document(file_path)
             for cell_text, value in form_data.items():
@@ -346,10 +414,8 @@ def fill_form(form_id):
                         for row in table.rows:
                             for cell in row.cells:
                                 if cell.text.strip() == cell_text:
-                                    # Preserve the original formatting and style of the cell
                                     cell_paragraph = cell.paragraphs[0]
-                                    original_text = cell_paragraph.text
-                                    run = cell_paragraph.add_run(value)
+                                    run = cell_paragraph.add_run(f" {value}")
                                     run.font.name = cell_paragraph.runs[0].font.name
                                     run.font.size = cell_paragraph.runs[0].font.size
                                     run.bold = cell_paragraph.runs[0].bold
@@ -363,63 +429,86 @@ def fill_form(form_id):
             if form_response.send_email:
                 user = User.query.get(form_response.user_id)
                 if user:
-                    msg = Message('Modified File', recipients=[user.email])
-                    msg.body = 'Please find the attached modified file.'
-                    with open(temp_file.name, 'rb') as f:
-                        msg.attach(form_response.form_name + '.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', f.read())
-                    mail.send(msg)
+                    try:
+                        msg = Message('Modified File', recipients=[user.email])
+                        msg.body = 'Please find the attached modified file.'
+                        with open(temp_file.name, 'rb') as f:
+                            msg.attach(form_response.form_name + '.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', f.read())
+                        mail.send(msg)
+                    except Exception as e:
+                        flash('An error occurred while sending the email.', 'danger')
+                        app.logger.error(f"Email sending error: {str(e)}")
 
             if form_response.allow_download:
                 return send_file(temp_file.name, as_attachment=True)
             else:
-                return 'File modification completed, but download is not allowed.'
-        else:
-            abort(404)
+                flash('File modification completed, but download is not allowed.', 'info')
+                return redirect(url_for('fill_form', form_id=form_id))
+        except Exception as e:
+            flash('An error occurred while processing the form.', 'danger')
+            app.logger.error(f"Form processing error: {str(e)}")
+            return redirect(url_for('fill_form', form_id=form_id))
     else:
-        form_response = FormResponse.query.filter_by(form_id=form_id).first()
-        if form_response:
-            selected_cells = form_response.selected_cells.split(',')
-            unique_filename = form_response.unique_filename
-            return render_template('fill_form.html', form_id=form_id, selected_cells=selected_cells, unique_filename=unique_filename)
-        else:
-            abort(404)
+        selected_cells = form_response.selected_cells.split(',')
+        unique_filename = form_response.unique_filename
+        return render_template('fill_form.html', form_id=form_id, selected_cells=selected_cells, unique_filename=unique_filename)
 
 @app.route('/delete_form/<form_id>', methods=['GET'])
 @login_required
 def delete_form(form_id):
     form_response = FormResponse.query.filter_by(form_id=form_id, user_id=current_user.id).first()
-    if form_response:
+
+    if not form_response:
+        flash('Form not found.', 'danger')
+        return redirect(url_for('dashboard'))
+
+    try:
         db.session.delete(form_response)
         db.session.commit()
         flash('Form deleted successfully.', 'success')
-    else:
-        flash('Form not found.', 'error')
+    except Exception as e:
+        db.session.rollback()
+        flash('An error occurred while deleting the form.', 'danger')
+        app.logger.error(f"Form deletion error: {str(e)}")
+
     return redirect(url_for('dashboard'))
 
 @app.route('/update_form/<form_id>', methods=['GET', 'POST'])
 @login_required
 def update_form(form_id):
     form_response = FormResponse.query.filter_by(form_id=form_id, user_id=current_user.id).first()
-    if form_response:
-        form = UpdateFormForm()
-        if request.method == 'POST':
+
+    if not form_response:
+        flash('Form not found.', 'danger')
+        return redirect(url_for('dashboard'))
+
+    form = UpdateFormForm()
+    if request.method == 'POST':
+        try:
             form_response.form_name = form.form_name.data
-            selected_cells = request.form.getlist('selected_cells')  # Get selected cells from the form
+            selected_cells = request.form.getlist('selected_cells')
             form_response.selected_cells = ','.join(selected_cells)
             db.session.commit()
             flash('Form updated successfully.', 'success')
             return redirect(url_for('dashboard'))
-        else:
-            # Fetch unique cell values from the current form response
-            all_cells = set(form_response.selected_cells.split(','))
-            form.selected_cells.choices = [(cell, cell) for cell in all_cells]
-            # Preselect cells based on existing data
-            form.selected_cells.data = form_response.selected_cells.split(',')
-            form.form_name.data = form_response.form_name
-            return render_template('update_form.html', form=form)
+        except Exception as e:
+            db.session.rollback()
+            flash('An error occurred while updating the form.', 'danger')
+            app.logger.error(f"Form update error: {str(e)}")
     else:
-        flash('Form not found.', 'error')
-        return redirect(url_for('dashboard'))
+        all_cells = set(form_response.selected_cells.split(','))
+        form.selected_cells.choices = [(cell, cell) for cell in all_cells]
+        form.selected_cells.data = form_response.selected_cells.split(',')
+        form.form_name.data = form_response.form_name
+        return render_template('update_form.html', form=form)
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    return render_template('500.html'), 500
 
 def send_email(to, subject, template, **kwargs):
     msg = Message(subject, recipients=[to])

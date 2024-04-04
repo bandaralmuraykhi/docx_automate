@@ -92,7 +92,7 @@ The Dynamic Form Generator is a web application that allows users to upload a .d
 
 5. Run the application:
    ```
-   python app.py
+   python3 app.py
    ```
 
 6. Open a web browser and navigate to `http://localhost:5001` to access the application.
