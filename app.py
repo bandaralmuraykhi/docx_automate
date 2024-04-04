@@ -139,8 +139,8 @@ def home():
 
 @app.route('/upload')
 @login_required
-def index():
-    return render_template('index.html')
+def upload():
+    return render_template('upload.html')
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -206,7 +206,7 @@ def unconfirmed():
     user = User.query.filter_by(email=email).first()
     
     if user and user.confirmed:
-        return redirect(url_for('index'))
+        return redirect(url_for('upload'))
     
     form = ResendConfirmationForm()
     if form.validate_on_submit():
@@ -224,7 +224,7 @@ def unconfirmed():
 @app.route('/reset_password_request', methods=['GET', 'POST'])
 def reset_password_request():
     if current_user.is_authenticated:
-        return redirect(url_for('index'))
+        return redirect(url_for('upload'))
     form = ResetPasswordRequestForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
@@ -240,7 +240,7 @@ def reset_password_request():
 @app.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
     if current_user.is_authenticated:
-        return redirect(url_for('index'))
+        return redirect(url_for('upload'))
 
     user = User.verify_reset_token(token)
     if not user:
@@ -276,10 +276,10 @@ def allowed_file(filename):
 @login_required
 def upload_file():
     if 'file' not in request.files:
-        return redirect(url_for('index'))
+        return redirect(url_for('upload'))
     file = request.files['file']
     if file.filename == '':
-        return redirect(url_for('index'))
+        return redirect(url_for('upload'))
     if file and allowed_file(file.filename):
         if file.content_length > 10 * 1024 * 1024:  # Limit file size to 10MB
             abort(413)  # Request Entity Too Large
@@ -300,7 +300,7 @@ def upload_file():
                 if row_data:
                     table_data.append(row_data)
         return jsonify({'table_data': table_data, 'unique_filename': unique_filename})
-    return redirect(url_for('index'))
+    return redirect(url_for('upload'))
 
 @app.route('/create_form', methods=['POST'])
 @login_required

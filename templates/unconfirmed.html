@@ -1,20 +1,30 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<style>
+    .main-content{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 2rem;
+    }
+
+</style>
+
 <div>
-    <h1>Unconfirmed Email</h1>
+    <h1 class="title mb-2">Unconfirmed Email</h1>
     {% with messages = get_flashed_messages(with_categories=True) %}
         {% if messages %}
             {% for category, message in messages %}
-                <div>{{ message }}</div>
+                <h1 class="is-size-5 mb-2">{{ message }}</h1>
             {% endfor %}
         {% endif %}
     {% endwith %}
-    <p>Please confirm your email address to access your account.</p>
+    <p class="is-size-5 mb-2">Please confirm your email address to access your account.</p>
     <form method="POST">
         {{ form.hidden_tag() }}
         <div>
-            <input type="submit" value="{{ form.submit.label.text }}">
+            <input class="button is-primary" type="submit" value="{{ form.submit.label.text }}">
         </div>
     </form>
 </div>

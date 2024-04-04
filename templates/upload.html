@@ -4,6 +4,11 @@
 
 {% block content %}
     <style>
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
         .cell {
             cursor: pointer;
         }
@@ -11,34 +16,65 @@
             overflow-x: auto; /* Makes the table scrollable horizontally */
         }
         .selected {
-            background-color: #007bff; /* primary color */
+            background-color: #00d1b2; /* primary color */
             color: white;
         }
+        /* Hide default file input button */
+        input[type="file"] {
+            display: none;
+        }
+        /* Style the custom file input button */
+        .button-label {
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* Style the label for the custom file input button */
+        .button-label {
+            text-align: center;
+            font-weight: bold;
+        }
+        td:first-child {
+        display: none;
+        }
     </style>
-    <h1>Upload a .docx File</h1>
-    <form enctype="multipart/form-data" class="mb-3">
-        <input type="file" name="file" class="form-control-file mb-2">
-        <input type="submit" value="Upload" class="btn btn-primary">
+<div class="m-3">
+    <h1 class="title mb-3">Upload a .docx File</h1>
+    <form enctype="multipart/form-data" class="file is-danger has-name is-boxed mb-3" style="display: flex;justify-items: stretch;flex-direction: column;align-items: stretch;align-content: space-between;justify-content: space-between;">
+        <input type="file" id="fileInput" name="file" class="button is-primary" onchange="displayFileName()">
+        <label for="fileInput" class="button button-label is-primary mb-3" id="fileLabel">Choose File</label>
+        <input type="submit" value="Upload" class="button is-primary">
     </form>
-    <div class="table-container">
+    <div class="table-container m-0">
         <div id="table-data" class="mb-3"></div>
     </div>
-    <div id="options" class="mb-3" style="display: none;">
-        <div class="form-check">
+    <div id="DOU" style="display: none;" class="title is-primary mb-3">Do you want to :</div>
+    <div id="options" style="display: none;">
+        <div class="form-check mb-3">
             <input type="checkbox" id="send-email" name="send_email" class="form-check-input">
             <label for="send-email" class="form-check-label">Send modified files to email</label>
         </div>
-        <div class="form-check">
+        <div class="form-check mb-3">
             <input type="checkbox" id="allow-download" name="allow_download" class="form-check-input" checked>
             <label for="allow-download" class="form-check-label">Allow visitors to download modified files</label>
         </div>
-        <button id="submit-cells" class="btn btn-success mt-2" style="display: none;">Submit Selected Cells</button>
+        <button id="submit-cells" class="button is-light" style="display: none;">Submit Selected Cells</button>
     </div>
-    <div id="selected-cells" class="mb-3"></div>
+    <div id="selected-cells" class="mt-3 mb-3"></div>
     <div id="form-url" class="mt-3"></div>
-
+</div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+        function displayFileName() {
+            const fileInput = document.getElementById('fileInput');
+            const fileLabel = document.getElementById('fileLabel');
+
+            if (fileInput.files.length > 0) {
+                fileLabel.innerText = fileInput.files[0].name;
+            } else {
+                fileLabel.innerText = 'Choose File';
+            }
+        }
         var uniqueFilename = '';
         var selectedCells = [];
 
@@ -55,8 +91,8 @@
                     success: function(data) {
                         var tableData = data.table_data;
                         uniqueFilename = data.unique_filename;
-                        var tableHtml = '<table class="table">';
-                        tableHtml += '<thead><tr><th>Select</th><th>Cell Content</th></tr></thead><tbody>';
+                        var tableHtml = '<table class="table is-bordered">';
+                        tableHtml += '<thead><tr><th class="title is-white has-text-black" colspan="2">Pick what you want in the form:</th></tr></thead><tbody>';
                         // Part of the success function in the AJAX call
                         for (var i = 0; i < tableData.length; i++) {
                             var row = tableData[i];
@@ -70,6 +106,7 @@
                         $('#table-data').html(tableHtml);
                         $('#options').show();
                         $('#submit-cells').show();
+                        $('#DOU').show();
                     }
                 });
             });
@@ -91,21 +128,16 @@
                 if (checkbox.is(':checked')) {
                     if (index === -1) {
                         selectedCells.push(cellText);
-                        $(this).addClass('selected');  // Highlight the row
+                        $(this).addClass('is-primary');  // Highlight the row
                     }
                 } else {
                     if (index > -1) {
                         selectedCells.splice(index, 1);
-                        $(this).removeClass('selected');  // Remove highlight from the row
+                        $(this).removeClass('is-primary');  // Remove highlight from the row
                     }
                 }
-                updateSelectedCellsDisplay();
             });
 
-            function updateSelectedCellsDisplay() {
-                var displayText = selectedCells.join(', ');
-                $('#selected-cells').text('Selected Cells: ' + displayText);
-            }
 
             $('#submit-cells').click(function() {
                 var sendEmail = $('#send-email').is(':checked');
@@ -123,7 +155,7 @@
                     success: function(data) {
                         var formUrl = data.form_url + '?selected_cells=' + encodeURIComponent(selectedCells.join(',')) + '&unique_filename=' + encodeURIComponent(uniqueFilename);
                         // Create a button for the URL
-                        var urlButton = '<a href="' + formUrl + '" target="_blank" class="btn btn-success mt-2">Open Form</a>';
+                        var urlButton = '<a href="' + formUrl + '" target="_blank" class="button is-light">Open your custom Form</a>';
                         $('#form-url').html(urlButton);
                     }
                 });

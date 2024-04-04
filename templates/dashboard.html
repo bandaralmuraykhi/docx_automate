@@ -3,16 +3,56 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-    <h1>Dashboard</h1>
-    <h2>Form Responses</h2>
+    <style>
+        .table-container {
+            overflow-x: auto; /* Makes the table scrollable horizontally */
+        }
+        .selected {
+            background-color: #00d1b2; /* primary color */
+            color: white;
+        }
+        /* Hide default file input button */
+        input[type="file"] {
+            display: none;
+        }
+        /* Style the custom file input button */
+        .button-label {
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* Style the label for the custom file input button */
+        .button-label {
+            text-align: center;
+            font-weight: bold;
+        }
+        .main-content{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 2rem;
+        }
+        </style>
+    <h1 class="title">Manage your created Forms</h1>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div class="notification is-info">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% endwith %}
+
     {% if form_responses %}
-        <table class="table table-hover">
-            <thead class="thead-dark">
-                <tr>
-                    <th>Form ID</th>
-                    <th>Form Name</th>
-                    <th>Form Link</th>
-                    <th>Actions</th>
+    <div class="table-container m-0">
+        <table class="table is-bordered mb-3 ">
+            <thead>
+                <tr class="is-light">
+                    <th class="has-background-primary has-text-primary-00">Form ID</th>
+                    <th class="has-background-primary has-text-primary-00">Form Name</th>
+                    <th class="has-background-primary has-text-primary-00">Form Link</th>
+                    <th class="has-background-primary has-text-primary-00">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -20,16 +60,17 @@
                     <tr>
                         <td>{{ response.form_id }}</td>
                         <td>{{ response.form_name }}</td>
-                        <td><a href="{{ response.form_link }}" target="_blank">View Form</a></td>
+                        <td><a href="{{ response.form_link }}" target="_blank" class="button is-info">View Form</a></td>
                         <td>
-                            <a href="{{ url_for('update_form', form_id=response.form_id) }}" class="btn btn-primary btn-sm">Edit</a>
-                            <a href="{{ url_for('delete_form', form_id=response.form_id) }}" class="btn btn-danger btn-sm">Delete</a>
+                            <a href="{{ url_for('update_form', form_id=response.form_id) }}" class="button is-warning">Edit</a>
+                            <a href="{{ url_for('delete_form', form_id=response.form_id) }}" class="button is-danger">Delete</a>
                         </td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
-    {% else %}
+    </div>
+        {% else %}
         <p>No form responses found.</p>
     {% endif %}
 {% endblock %}

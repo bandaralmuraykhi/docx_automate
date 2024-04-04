@@ -1,47 +1,221 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head data-theme="dark">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Dynamic Form Gen{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/bulma/css/bulma.min.css') }}">
-  </head>
-  <body class="is-justify-content-space-between">
-    <div>
-        <!-- Navigation Bar -->
-        <nav class="navbar">
-          <a class="image is-48x48 m-1" href="{{ url_for('home') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+    <style>
+        /* Your custom CSS styles here */
+        /* Example media query for mobile devices */
+        @media only screen and (max-width: 768px) {
+            /* Add specific styles for mobile devices here */
+            .navbar-menu {
+                /* Example: hide the menu on mobile by default */
+                display: none;
+            }
+            /* Example: show hamburger icon on mobile */
+            .navbar-burger {
+                display: block;
+            }
+            /* Example: hide desktop logo on mobile */
+            .navbar-brand-desktop {
+                display: none;
+            }
+        }
+        /* Custom styles */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        .flex-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .main-content {
+            flex: 1;
+        }
+        .tajawal-medium {
+          font-family: "Tajawal", sans-serif;
+          font-weight: 500;
+          font-style: normal;
+        }        
+        .reversible-image {
+          transition: filter 0.3s ease; /* Smooth transition */
+        }
+        .cell-checkbox{
+            visibility: hidden;
+        }
+        label, tr, th {
+            user-select: none; /* Prevent text selection */
+        }
+        /* Custom styles for checkboxes */
+        .form-check *,
+        .form-check ::after,
+        .form-check ::before {
+          box-sizing: border-box;
+        }
+        .form-check [type=checkbox].form-check-input {
+          margin: 0;
+          width: 0;
+          height: 0;
+          display: inline;
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
+        }
+        .form-check [type=checkbox].form-check-input + label:before {
+          content: "";
+          display: inline-block;
+          vertical-align: top;
+          height: 1.15em;
+          width: 1.15em;
+          margin-right: 0.6em;
+          color: rgba(0, 0, 0, 0.275);
+          border: solid 0.06em;
+          box-shadow: 0 0 0.04em, 0 0.06em 0.16em -0.03em inset, 0 0 0 0.07em transparent inset;
+          border-radius: 0.2em;
+          background: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xml:space="preserve" fill="white" viewBox="0 0 9 9"><rect x="0" y="4.3" transform="matrix(-0.707 -0.7072 0.7072 -0.707 0.5891 10.4702)" width="4.3" height="1.6" /><rect x="2.2" y="2.9" transform="matrix(-0.7071 0.7071 -0.7071 -0.7071 12.1877 2.9833)" width="6.1" height="1.7" /></svg>') no-repeat center, white;
+          background-size: 0;
+          will-change: color, border, background, background-size, box-shadow;
+          transform: translate3d(0, 0, 0);
+          transition: color 0.1s, border 0.1s, background 0.15s, box-shadow 0.1s;
+        }
+        .form-check [type=checkbox].form-check-input:enabled:active + label:before,
+        .form-check [type=checkbox].form-check-input:enabled + label:active:before {
+          box-shadow: 0 0 0.04em, 0 0.06em 0.16em -0.03em transparent inset, 0 0 0 0.07em rgba(0, 0, 0, 0.1) inset;
+          background-color: #f0f0f0;
+        }
+        .form-check [type=checkbox].form-check-input:checked + label:before {
+          background-color: #3B99FC;
+          background-size: 0.75em;
+          color: rgba(0, 0, 0, 0.075);
+        }
+        .form-check [type=checkbox].form-check-input:checked:enabled:active + label:before,
+        .form-check [type=checkbox].form-check-input:checked:enabled + label:active:before {
+          background-color: #0a7efb;
+          color: rgba(0, 0, 0, 0.275);
+        }
+        .form-check [type=checkbox].form-check-input:focus + label:before {
+          box-shadow: 0 0 0.04em, 0 0.06em 0.16em -0.03em transparent inset, 0 0 0 0.07em rgba(0, 0, 0, 0.1) inset, 0 0 0 3.3px rgba(65, 159, 255, 0.55), 0 0 0 5px rgba(65, 159, 255, 0.3);
+        }
+        .form-check [type=checkbox].form-check-input:focus:active + label:before,
+        .form-check [type=checkbox].form-check-input:focus + label:active:before {
+          box-shadow: 0 0 0.04em, 0 0.06em 0.16em -0.03em transparent inset, 0 0 0 0.07em rgba(0, 0, 0, 0.1) inset, 0 0 0 3.3px rgba(65, 159, 255, 0.55), 0 0 0 5px rgba(65, 159, 255, 0.3);
+        }
+        .form-check [type=checkbox].form-check-input:disabled + label:before {
+          opacity: 0.5;
+        }
+        .form-check [type=checkbox].form-check-input.dark + label:before {
+          color: rgba(255, 255, 255, 0.275);
+          background-color: #222;
+          background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xml:space="preserve" fill="rgba(34, 34, 34, 0.999)" viewBox="0 0 9 9"><rect x="0" y="4.3" transform="matrix(-0.707 -0.7072 0.7072 -0.707 0.5891 10.4702)" width="4.3" height="1.6" /><rect x="2.2" y="2.9" transform="matrix(-0.7071 0.7071 -0.7071 -0.7071 12.1877 2.9833)" width="6.1" height="1.7" /></svg>');
+        }
+        .form-check [type=checkbox].form-check-input.dark:enabled:active + label:before,
+        .form-check [type=checkbox].form-check-input.dark:enabled + label:active:before {
+          background-color: #444;
+          box-shadow: 0 0 0.04em, 0 0.06em 0.16em -0.03em transparent inset, 0 0 0 0.07em rgba(255, 255, 255, 0.1) inset;
+        }
+        .form-check [type=checkbox].form-check-input.dark:checked + label:before {
+          background-color: #a97035;
+          color: rgba(255, 255, 255, 0.075);
+        }
+        .form-check [type=checkbox].form-check-input.dark:checked:enabled:active + label:before,
+        .form-check [type=checkbox].form-check-input.dark:checked:enabled + label:active:before {
+          background-color: #c68035;
+          color: rgba(0, 0, 0, 0.275);
+        }
+    </style>
+    <!-- Set initial theme based on local storage -->
+</head>
+<body class="flex-container tajawal-medium">
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <a class="image is-48x48 m-1" href="{{ url_for('home') }}">
             <figure>
-              <img class="reversible-image p-0" src="{{ url_for('static', filename='img/Designer.png') }}" alt="DFG Logo">
+                <img class="reversible-image p-0" src="{{ url_for('static', filename='img/Designer.png') }}" alt="DFG Logo">
             </figure>
-          </a>
-          <div id="navbarMenuHeroA" class="navbar-menu">
+        </a>
+        <div id="navbarMenuHeroA" class="navbar-menu is-active">
             <div class="navbar-start">
-              <a class="navbar-item" href="{{ url_for('home') }}">Home</a>
-              {% if current_user.is_authenticated %}
-                <a class="navbar-item" href="{{ url_for('index') }}">Upload</a>
-                <a class="navbar-item" href="{{ url_for('dashboard') }}">Dashboard</a>
-                <a class="navbar-item" href="{{ url_for('logout') }}">Logout</a>
-              {% else %}
-                <a class="navbar-item" href="{{ url_for('login') }}">Login</a>
-                <a class="navbar-item" href="{{ url_for('signup') }}">Sign Up</a>
-              {% endif %}
+                <a class="navbar-item" href="{{ url_for('home') }}">Home</a>
+                {% if current_user.is_authenticated %}
+                    <a class="navbar-item" href="{{ url_for('upload') }}">Upload</a>
+                    <a class="navbar-item" href="{{ url_for('dashboard') }}">Dashboard</a>
+                    <a class="navbar-item" href="{{ url_for('logout') }}">Logout</a>
+                {% else %}
+                    <a class="navbar-item" href="{{ url_for('login') }}">Login</a>
+                    <a class="navbar-item" href="{{ url_for('signup') }}">Sign Up</a>
+                {% endif %}
             </div>
-          </div>
-        </nav>
-
-        <!-- Main Content -->
+        </div>
+        <div class="navbar-end">
+            <!-- Dark mode toggle button -->
+            <a class="is-white" id="darkModeToggle">
+                <span class="icon" src="Designer.svg">
+            </a>
+        </div>
+    </nav>
+    <!-- Main Content -->
+    <div class="main-content">
         {% block content %}
-
         {% endblock %}
-        <!-- footer -->
-        <footer class="footer has-background-primary has-text-primary-invert m-0 p-1">
-          <div class="content has-text-centered">
+    </div>
+    <!-- footer -->
+    <footer class="footer has-background-primary has-text-primary-invert m-0 p-1">
+        <div class="content has-text-centered">
             &copy; 2024 Dynamic Form Gen | All rights reserved
-          </div>
-        </footer>
+        </div>
+    </footer>
+    <!--scripts-->
+    <!--Dark mode switch-->
+    <script>
+         // JavaScript to handle navbar toggle on mobile
+         document.addEventListener('DOMContentLoaded', () => {
+            // Get all "navbar-burger" elements
+            const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
 
-        <script src="{{ url_for('static', filename='node_modules/bulma/bulma.js') }}"></script>
-      </div>
-  </body>
+            // Check if there are any navbar burgers
+            if ($navbarBurgers.length > 0) {
+                // Add a click event on each of them
+                $navbarBurgers.forEach( el => {
+                    el.addEventListener('click', () => {
+                        // Get the target from the "data-target" attribute
+                        const target = el.dataset.target;
+                        const $target = document.getElementById(target);
+
+                        // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
+                        el.classList.toggle('is-active');
+                        $target.classList.toggle('is-active');
+                    });
+                });
+            }
+        });
+      const darkModeToggle = document.getElementById('darkModeToggle');
+      const html = document.documentElement;
+      const savedTheme = localStorage.getItem('theme');
+
+      if (savedTheme) {
+          html.setAttribute('data-theme', savedTheme);
+      }
+      
+      darkModeToggle.addEventListener('click', () => {
+          if (html.getAttribute('data-theme') === 'light') {
+              html.setAttribute('data-theme', 'dark');
+              localStorage.setItem('theme', 'dark'); // Save theme to local storage
+          } else {
+              html.setAttribute('data-theme', 'light');
+              localStorage.setItem('theme', 'light'); // Save theme to local storage
+          }
+      });
+    </script>
+    <script src="{{ url_for('static', filename='node_modules/bulma/bulma.js') }}"></script>
+</body>
 </html>
