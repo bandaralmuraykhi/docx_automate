@@ -3,163 +3,151 @@
 {% block title %}File Upload{% endblock %}
 
 {% block content %}
-    <style>
-        .main-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .cell {
-            cursor: pointer;
-        }
-        .table-container {
-            overflow-x: auto; /* Makes the table scrollable horizontally */
-        }
-        .selected {
-            background-color: #00d1b2; /* primary color */
-            color: white;
-        }
-        /* Hide default file input button */
-        input[type="file"] {
-            display: none;
-        }
-        /* Style the custom file input button */
-        .button-label {
-            font-weight: bold;
-            text-align: center;
-        }
-
-        /* Style the label for the custom file input button */
-        .button-label {
-            text-align: center;
-            font-weight: bold;
-        }
-        td:first-child {
-        display: none;
-        }
-    </style>
-<div class="m-3">
-    <h1 class="title mb-3">Upload a .docx File</h1>
-    <form enctype="multipart/form-data" class="file is-danger has-name is-boxed mb-3" style="display: flex;justify-items: stretch;flex-direction: column;align-items: stretch;align-content: space-between;justify-content: space-between;">
-        <input type="file" id="fileInput" name="file" class="button is-primary" onchange="displayFileName()">
-        <label for="fileInput" class="button button-label is-primary mb-3" id="fileLabel">Choose File</label>
-        <input type="submit" value="Upload" class="button is-primary">
-    </form>
-    <div class="table-container m-0">
-        <div id="table-data" class="mb-3"></div>
-    </div>
-    <div id="DOU" style="display: none;" class="title is-primary mb-3">Do you want to :</div>
-    <div id="options" style="display: none;">
-        <div class="form-check mb-3">
-            <input type="checkbox" id="send-email" name="send_email" class="form-check-input">
-            <label for="send-email" class="form-check-label">Send modified files to email</label>
+<section class="section">
+    <div class="container">
+        <h1 class="title has-text-centered">Upload a .docx File</h1>
+        <div class="columns is-centered">
+            <div class="column is-half">
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="field has-text-centered">
+                        <div class="file has-name is-boxed is-centered">
+                            <label class="file-label">
+                                <input type="file" id="fileInput" name="file" class="file-input" onchange="displayFileName()">
+                                <span class="file-cta">
+                                    <span class="file-icon">
+                                        <i class="fas fa-upload"></i>
+                                    </span>
+                                    <span class="file-label" id="fileLabel">Choose a file...</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="field has-text-centered mt-4">
+                        <div class="control">
+                            <button type="submit" class="button is-primary">Upload</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
-        <div class="form-check mb-3">
-            <input type="checkbox" id="allow-download" name="allow_download" class="form-check-input" checked>
-            <label for="allow-download" class="form-check-label">Allow visitors to download modified files</label>
+        <div class="mt-5">
+            <div id="table-data"></div>
+            <div id="options" style="display: none;" class="has-text-centered mt-4">
+                <h2 class="title is-4">Do you want to:</h2>
+                <div class="field">
+                    <div class="control">
+                        <label class="custom-checkbox">
+                            <input type="checkbox" id="send-email" name="send_email">
+                            <span>Send modified files to email</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label class="custom-checkbox">
+                            <input type="checkbox" id="allow-download" name="allow_download" checked>
+                            <span>Allow visitors to download modified files</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="has-text-centered mt-4">
+                    <button id="submit-cells" class="button is-primary" style="display: none;">Submit Selected Cells</button>
+                </div>
+            </div>
+            <div id="form-url" class="has-text-centered mt-4"></div>
         </div>
-        <button id="submit-cells" class="button is-light" style="display: none;">Submit Selected Cells</button>
     </div>
-    <div id="selected-cells" class="mt-3 mb-3"></div>
-    <div id="form-url" class="mt-3"></div>
-</div>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        function displayFileName() {
-            const fileInput = document.getElementById('fileInput');
-            const fileLabel = document.getElementById('fileLabel');
+</section>
 
-            if (fileInput.files.length > 0) {
-                fileLabel.innerText = fileInput.files[0].name;
-            } else {
-                fileLabel.innerText = 'Choose File';
-            }
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    function displayFileName() {
+        const fileInput = document.getElementById('fileInput');
+        const fileLabel = document.getElementById('fileLabel');
+
+        if (fileInput.files.length > 0) {
+            fileLabel.innerText = fileInput.files[0].name;
+        } else {
+            fileLabel.innerText = 'Choose a file...';
         }
-        var uniqueFilename = '';
-        var selectedCells = [];
+    }
 
-        $(document).ready(function() {
-            $('form').submit(function(event) {
-                event.preventDefault();
-                var formData = new FormData(this);
-                $.ajax({
-                    url: '/upload',
-                    type: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function(data) {
-                        var tableData = data.table_data;
-                        uniqueFilename = data.unique_filename;
-                        var tableHtml = '<table class="table is-bordered">';
-                        tableHtml += '<thead><tr><th class="title is-white has-text-black" colspan="2">Pick what you want in the form:</th></tr></thead><tbody>';
-                        // Part of the success function in the AJAX call
-                        for (var i = 0; i < tableData.length; i++) {
-                            var row = tableData[i];
-                            for (var j = 0; j < row.length; j++) {
-                                var cellText = row[j];
-                                tableHtml += '<tr data-cell="' + cellText + '"><td><input type="checkbox" class="cell-checkbox" data-cell="' + cellText + '"></td><td>' + cellText + '</td></tr>';
-                            }
+    var uniqueFilename = '';
+    var selectedCells = [];
+
+    $(document).ready(function() {
+        $('#uploadForm').submit(function(event) {
+            event.preventDefault();
+            var formData = new FormData(this);
+            $.ajax({
+                url: '/upload',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(data) {
+                    var tableData = data.table_data;
+                    uniqueFilename = data.unique_filename;
+                    var tableHtml = '<table class="table is-bordered">';
+                    tableHtml += '<thead><tr><th class="has-text-centered" colspan="2">Pick what you want in the form:</th></tr></thead><tbody>';
+                    for (var i = 0; i < tableData.length; i++) {
+                        var row = tableData[i];
+                        for (var j = 0; j < row.length; j++) {
+                            var cellText = row[j];
+                            tableHtml += '<tr data-cell="' + cellText + '"><td class="has-text-centered"><label class="checkbox"><input type="checkbox" class="cell-checkbox" data-cell="' + cellText + '"></label></td><td>' + cellText + '</td></tr>';
                         }
-
-                        tableHtml += '</tbody></table>';
-                        $('#table-data').html(tableHtml);
-                        $('#options').show();
-                        $('#submit-cells').show();
-                        $('#DOU').show();
                     }
-                });
-            });
-        
-            $(document).on('click', 'tr', function(e) {
-                // Check if the clicked element is the checkbox
-                if ($(e.target).hasClass('cell-checkbox')) {
-                    // If it's the checkbox, no additional action is needed here
-                    // as the checkbox's default behavior will already toggle its state
-                    return;
+                    tableHtml += '</tbody></table>';
+                    $('#table-data').html(tableHtml);
+                    $('#options').show();
+                    $('#submit-cells').show();
                 }
-
-                var checkbox = $(this).find('.cell-checkbox');
-                checkbox.prop('checked', !checkbox.prop('checked'));
-
-                // Rest of the cell selection logic
-                var cellText = checkbox.data('cell');
-                var index = selectedCells.indexOf(cellText);
-                if (checkbox.is(':checked')) {
-                    if (index === -1) {
-                        selectedCells.push(cellText);
-                        $(this).addClass('is-primary');  // Highlight the row
-                    }
-                } else {
-                    if (index > -1) {
-                        selectedCells.splice(index, 1);
-                        $(this).removeClass('is-primary');  // Remove highlight from the row
-                    }
-                }
-            });
-
-
-            $('#submit-cells').click(function() {
-                var sendEmail = $('#send-email').is(':checked');
-                var allowDownload = $('#allow-download').is(':checked');
-                $.ajax({
-                    url: '/create_form',
-                    type: 'POST',
-                    data: JSON.stringify({
-                        selected_cells: selectedCells,
-                        unique_filename: uniqueFilename,
-                        send_email: sendEmail,
-                        allow_download: allowDownload
-                    }),
-                    contentType: 'application/json',
-                    success: function(data) {
-                        var formUrl = data.form_url + '?selected_cells=' + encodeURIComponent(selectedCells.join(',')) + '&unique_filename=' + encodeURIComponent(uniqueFilename);
-                        // Create a button for the URL
-                        var urlButton = '<a href="' + formUrl + '" class="button is-light">Open your custom Form</a>';
-                        $('#form-url').html(urlButton);
-                    }
-                });
             });
         });
-    </script>
+
+        $(document).on('click', 'tr', function(e) {
+            if ($(e.target).hasClass('cell-checkbox')) {
+                return;
+            }
+
+            var checkbox = $(this).find('.cell-checkbox');
+            checkbox.prop('checked', !checkbox.prop('checked'));
+
+            var cellText = checkbox.data('cell');
+            var index = selectedCells.indexOf(cellText);
+            if (checkbox.is(':checked')) {
+                if (index === -1) {
+                    selectedCells.push(cellText);
+                    $(this).addClass('is-selected');
+                }
+            } else {
+                if (index > -1) {
+                    selectedCells.splice(index, 1);
+                    $(this).removeClass('is-selected');
+                }
+            }
+        });
+
+        $('#submit-cells').click(function() {
+            var sendEmail = $('#send-email').is(':checked');
+            var allowDownload = $('#allow-download').is(':checked');
+            $.ajax({
+                url: '/create_form',
+                type: 'POST',
+                data: JSON.stringify({
+                    selected_cells: selectedCells,
+                    unique_filename: uniqueFilename,
+                    send_email: sendEmail,
+                    allow_download: allowDownload
+                }),
+                contentType: 'application/json',
+                success: function(data) {
+                    var formUrl = data.form_url + '?selected_cells=' + encodeURIComponent(selectedCells.join(',')) + '&unique_filename=' + encodeURIComponent(uniqueFilename);
+                    var urlButton = '<a href="' + formUrl + '" class="button is-primary" target="_blank">Open your custom form</a>';
+                    $('#form-url').html(urlButton);
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

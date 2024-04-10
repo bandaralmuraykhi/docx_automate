@@ -1,56 +1,74 @@
-{% extends 'base.html' %} 
+{% extends 'base.html' %}
 
-{% block title %}Sign Up{% endblock %} {% block
-content %}
+{% block title %}Sign Up{% endblock %}
 
+{% block content %}
 <section class="section">
-  <div class="container">
-    <h1 class="title">Sign Up</h1>
-    {% with messages = get_flashed_messages() %} {% if messages %}
-    <article class="message is-info">
-      <div class="message-body">
-        {% for message in messages %}
-        <p>{{ message }}</p>
-        {% endfor %}
-      </div>
-    </article>
-    {% endif %} {% endwith %}
-    <form method="POST" action="{{ url_for('signup') }}">
-      {{ form.hidden_tag() }}
-      <div class="field">
-        {{ form.email.label(class="label") }} {{ form.email(class="input") }} {%
-        if form.email.errors %}
-        <div class="help is-danger">
-          {% for error in form.email.errors %}
-          <p>{{ error }}</p>
-          {% endfor %}
+    <div class="container">
+        <div class="columns is-centered">
+            <div class="column is-half">
+                <h1 class="title has-text-centered">Sign Up</h1>
+                <form method="POST" action="{{ url_for('signup') }}">
+                    {{ form.hidden_tag() }}
+                    <div class="field">
+                        {{ form.email.label(class="label") }}
+                        <div class="control has-icons-left">
+                            {{ form.email(class="input", placeholder="Your Email") }}
+                            <span class="icon is-small is-left">
+                                <i class="fas fa-envelope"></i>
+                            </span>
+                        </div>
+                        {% if form.email.errors %}
+                        <div class="help is-danger">
+                            {% for error in form.email.errors %}
+                            <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="field">
+                        {{ form.password.label(class="label") }}
+                        <div class="control has-icons-left">
+                            {{ form.password(class="input", placeholder="Your Password") }}
+                            <span class="icon is-small is-left">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                        </div>
+                        {% if form.password.errors %}
+                        <div class="help is-danger">
+                            {% for error in form.password.errors %}
+                            <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="field">
+                        {{ form.confirm_password.label(class="label") }}
+                        <div class="control has-icons-left">
+                            {{ form.confirm_password(class="input", placeholder="Confirm Password") }}
+                            <span class="icon is-small is-left">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                        </div>
+                        {% if form.confirm_password.errors %}
+                        <div class="help is-danger">
+                            {% for error in form.confirm_password.errors %}
+                            <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="field">
+                        <div class="control">
+                            {{ form.submit(class="button is-primary is-fullwidth") }}
+                        </div>
+                    </div>
+                </form>
+                <div class="has-text-centered mt-4">
+                    <p>Already have an account? <a href="{{ url_for('login') }}">Log In</a></p>
+                </div>
+            </div>
         </div>
-        {% endif %}
-      </div>
-      <div class="field">
-        {{ form.password.label(class="label") }} {{ form.password(class="input")
-        }} {% if form.password.errors %}
-        <div class="help is-danger">
-          {% for error in form.password.errors %}
-          <p>{{ error }}</p>
-          {% endfor %}
-        </div>
-        {% endif %}
-      </div>
-      <div class="field">
-        {{ form.confirm_password.label(class="label") }} {{
-        form.confirm_password(class="input") }} {% if
-        form.confirm_password.errors %}
-        <div class="help is-danger">
-          {% for error in form.confirm_password.errors %}
-          <p>{{ error }}</p>
-          {% endfor %}
-        </div>
-        {% endif %}
-      </div>
-      {{ form.submit(class="button is-primary") }}
-    </form>
-    <p>Already have an account? <a href="{{ url_for('login') }}">Log In</a></p>
-  </div>
+    </div>
 </section>
 {% endblock %}

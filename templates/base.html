@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html lang="en">
-<head data-theme="dark">
+<html lang="en" data-theme="{{ 'dark' if session.get('theme') == 'dark' else 'light' }}">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Dynamic Form Gen{% endblock %}</title>
@@ -9,9 +9,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css">
 
     <style>
-        /* Your custom CSS styles here */
         @media only screen and (max-width: 768px) {
             .navbar-menu {
                 display: none;
@@ -20,7 +20,6 @@
                 display: block;
             }
         }
-        /* Custom styles */
         html, body {
             height: 100%;
             margin: 0;
@@ -35,137 +34,196 @@
             flex: 1;
         }
         .tajawal-medium {
-          font-family: "Tajawal", sans-serif;
-          font-weight: 500;
-          font-style: normal;
+            font-family: "Tajawal", sans-serif;
+            font-weight: 500;
+            font-style: normal;
         }        
         .reversible-image {
-          transition: filter 0.3s ease; /* Smooth transition */
+            transition: filter 0.3s ease;
         }
-        .cell-checkbox{
+        .cell-checkbox {
             visibility: hidden;
         }
-        label, tr, th ,i{
-            user-select: none; /* Prevent text selection */
+        label, tr, th, i {
+            user-select: none;
         }
-        /* Custom styles for checkboxes */
         .form-check *,
         .form-check ::after,
         .form-check ::before {
-          box-sizing: border-box;
+            box-sizing: border-box;
         }
         .form-check [type=checkbox].form-check-input {
-          margin: 0;
-          width: 0;
-          height: 0;
-          display: inline;
-          -webkit-appearance: none;
-          -moz-appearance: none;
-          appearance: none;
+            margin: 0;
+            width: 0;
+            height: 0;
+            display: inline;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
         }
         .form-check [type=checkbox].form-check-input + label:before {
-          content: "";
-          display: inline-block;
-          vertical-align: top;
-          height: 1.15em;
-          width: 1.15em;
-          margin-right: 0.6em;
-          color: rgba(0, 0, 0, 0.275);
-          border: solid 0.06em;
-          box-shadow: 0 0 0.04em, 0 0.06em 0.16em -0.03em inset, 0 0 0 0.07em transparent inset;
-          border-radius: 0.2em;
-          background: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xml:space="preserve" fill="white" viewBox="0 0 9 9"><rect x="0" y="4.3" transform="matrix(-0.707 -0.7072 0.7072 -0.707 0.5891 10.4702)" width="4.3" height="1.6" /><rect x="2.2" y="2.9" transform="matrix(-0.7071 0.7071 -0.7071 -0.7071 12.1877 2.9833)" width="6.1" height="1.7" /></svg>') no-repeat center, white;
-          background-size: 0;
-          will-change: color, border, background, background-size, box-shadow;
-          transform: translate3d(0, 0, 0);
-          transition: color 0.1s, border 0.1s, background 0.15s, box-shadow 0.1s;
+            content: "";
+            display: inline-block;
+            vertical-align: top;
+            height: 1.15em;
+            width: 1.15em;
+            margin-right: 0.6em;
+            color: rgba(0, 0, 0, 0.275);
+            border: solid 0.06em;
+            box-shadow: 0 0 0.04em, 0 0.06em 0.16em -0.03em inset, 0 0 0 0.07em transparent inset;
+            border-radius: 0.2em;
+            background: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xml:space="preserve" fill="white" viewBox="0 0 9 9"><rect x="0" y="4.3" transform="matrix(-0.707 -0.7072 0.7072 -0.707 0.5891 10.4702)" width="4.3" height="1.6" /><rect x="2.2" y="2.9" transform="matrix(-0.7071 0.7071 -0.7071 -0.7071 12.1877 2.9833)" width="6.1" height="1.7" /></svg>') no-repeat center, white;
+            background-size: 0;
+            will-change: color, border, background, background-size, box-shadow;
+            transform: translate3d(0, 0, 0);
+            transition: color 0.1s, border 0.1s, background 0.15s, box-shadow 0.1s;
         }
         .form-check [type=checkbox].form-check-input:enabled:active + label:before,
         .form-check [type=checkbox].form-check-input:enabled + label:active:before {
-          box-shadow: 0 0 0.04em, 0 0.06em 0.16em -0.03em transparent inset, 0 0 0 0.07em rgba(0, 0, 0, 0.1) inset;
-          background-color: #f0f0f0;
+            box-shadow: 0 0 0.04em, 0 0.06em 0.16em -0.03em transparent inset, 0 0 0 0.07em rgba(0, 0, 0, 0.1) inset;
+            background-color: #f0f0f0;
         }
         .form-check [type=checkbox].form-check-input:checked + label:before {
-          background-color: #3B99FC;
-          background-size: 0.75em;
-          color: rgba(0, 0, 0, 0.075);
+            background-color: #3B99FC;
+            background-size: 0.75em;
+            color: rgba(0, 0, 0, 0.075);
         }
         .form-check [type=checkbox].form-check-input:checked:enabled:active + label:before,
         .form-check [type=checkbox].form-check-input:checked:enabled + label:active:before {
-          background-color: #0a7efb;
-          color: rgba(0, 0, 0, 0.275);
+            background-color: #0a7efb;
+            color: rgba(0, 0, 0, 0.275);
         }
         .form-check [type=checkbox].form-check-input:focus + label:before {
-          box-shadow: 0 0 0.04em, 0 0.06em 0.16em -0.03em transparent inset, 0 0 0 0.07em rgba(0, 0, 0, 0.1) inset, 0 0 0 3.3px rgba(65, 159, 255, 0.55), 0 0 0 5px rgba(65, 159, 255, 0.3);
+            box-shadow: 0 0 0.04em, 0 0.06em 0.16em -0.03em transparent inset, 0 0 0 0.07em rgba(0, 0, 0, 0.1) inset, 0 0 0 3.3px rgba(65, 159, 255, 0.55), 0 0 0 5px rgba(65, 159, 255, 0.3);
         }
         .form-check [type=checkbox].form-check-input:focus:active + label:before,
         .form-check [type=checkbox].form-check-input:focus + label:active:before {
-          box-shadow: 0 0 0.04em, 0 0.06em 0.16em -0.03em transparent inset, 0 0 0 0.07em rgba(0, 0, 0, 0.1) inset, 0 0 0 3.3px rgba(65, 159, 255, 0.55), 0 0 0 5px rgba(65, 159, 255, 0.3);
+            box-shadow: 0 0 0.04em, 0 0.06em 0.16em -0.03em transparent inset, 0 0 0 0.07em rgba(0, 0, 0, 0.1) inset, 0 0 0 3.3px rgba(65, 159, 255, 0.55), 0 0 0 5px rgba(65, 159, 255, 0.3);
         }
         .form-check [type=checkbox].form-check-input:disabled + label:before {
-          opacity: 0.5;
+            opacity: 0.5;
         }
         .form-check [type=checkbox].form-check-input.dark + label:before {
-          color: rgba(255, 255, 255, 0.275);
-          background-color: #222;
-          background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xml:space="preserve" fill="rgba(34, 34, 34, 0.999)" viewBox="0 0 9 9"><rect x="0" y="4.3" transform="matrix(-0.707 -0.7072 0.7072 -0.707 0.5891 10.4702)" width="4.3" height="1.6" /><rect x="2.2" y="2.9" transform="matrix(-0.7071 0.7071 -0.7071 -0.7071 12.1877 2.9833)" width="6.1" height="1.7" /></svg>');
+            color: rgba(255, 255, 255, 0.275);
+            background-color: #222;
+            background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xml:space="preserve" fill="rgba(34, 34, 34, 0.999)" viewBox="0 0 9 9"><rect x="0" y="4.3" transform="matrix(-0.707 -0.7072 0.7072 -0.707 0.5891 10.4702)" width="4.3" height="1.6" /><rect x="2.2" y="2.9" transform="matrix(-0.7071 0.7071 -0.7071 -0.7071 12.1877 2.9833)" width="6.1" height="1.7" /></svg>');
         }
         .form-check [type=checkbox].form-check-input.dark:enabled:active + label:before,
         .form-check [type=checkbox].form-check-input.dark:enabled + label:active:before {
-          background-color: #444;
-          box-shadow: 0 0 0.04em, 0 0.06em 0.16em -0.03em transparent inset, 0 0 0 0.07em rgba(255, 255, 255, 0.1) inset;
+            background-color: #444;
+            box-shadow: 0 0 0.04em, 0 0.06em 0.16em -0.03em transparent inset, 0 0 0 0.07em rgba(255, 255, 255, 0.1) inset;
         }
         .form-check [type=checkbox].form-check-input.dark:checked + label:before {
-          background-color: #a97035;
-          color: rgba(255, 255, 255, 0.075);
+            background-color: #a97035;
+            color: rgba(255, 255, 255, 0.075);
         }
         .form-check [type=checkbox].form-check-input.dark:checked:enabled:active + label:before,
         .form-check [type=checkbox].form-check-input.dark:checked:enabled + label:active:before {
-          background-color: #c68035;
-          color: rgba(0, 0, 0, 0.275);
+            background-color: #c68035;
+            color: rgba(0, 0, 0, 0.275);
         }
+    .custom-checkbox {
+        display: inline-flex;
+        align-items: center;
+        font-size: 1rem;
+        font-weight: 500;
+        color: #4a4a4a;
+    }
+
+    .custom-checkbox input[type="checkbox"] {
+        margin-right: 0.5rem;
+        vertical-align: middle;
+    }
+
+    .custom-checkbox input[type="checkbox"]:checked + span {
+        color: #3B99FC;
+    }
+
         #darkModeToggle {
-          cursor: pointer;
-          transition: color 0.3s;
+            cursor: pointer;
+            transition: color 0.3s;
         }
-
         #darkModeToggle:hover {
-          color: #3B99FC;
+            color: #3B99FC;
         }
-
         #darkModeToggle .icon {
-          font-size: 24px;
+            font-size: 24px;
         }
-
+        img.invert {
+            filter: invert(1);
+        }
         .logo-container {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 48px;
-          height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
         }
-
         #logo {
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
             transition: filter 0.3s ease;
         }
-
         [data-theme="light"] #logo {
             filter: invert(1);
         }
+        body {
+            line-height: 1.6;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+        p {
+            margin-bottom: 1.5rem;
+        }
+        a {
+            color: #3B99FC;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        a:hover {
+            color: #0a7efb;
+        }
+        .button {
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .button:hover {
+            background-color: #0a7efb;
+            color: #fff;
+        }
+        .form-control {
+            margin-bottom: 1rem;
+        }
+        .form-control label {
+            font-weight: bold;
+        }
+        .form-control input,
+        .form-control textarea,
+        .form-control select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            transition: border-color 0.3s;
+        }
+        .form-control input:focus,
+        .form-control textarea:focus,
+        .form-control select:focus {
+            border-color: #3B99FC;
+            outline: none;
+        }
     </style>
-    <!-- Set initial theme based on local storage -->
 </head>
 <body class="flex-container tajawal-medium">
     <!-- Navigation Bar -->
-    <nav class="navbar">
+    <nav class="navbar" role="navigation" aria-label="main navigation">
         <div class="navbar-brand">
             <a class="navbar-item" href="{{ url_for('home') }}">
-              <div class="logo-container">
-                  <img id="logo" src="{{ url_for('static', filename='img/Designer.svg') }}" alt="DFG Logo">
-              </div>
+                <div class="logo-container">
+                    <img id="logo" src="{{ url_for('static', filename='img/Designer.svg') }}" alt="DFG Logo">
+                </div>
             </a>
             <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarMenuHeroA">
                 <span aria-hidden="true"></span>
@@ -186,69 +244,138 @@
                 {% endif %}
             </div>
             <div class="navbar-end">
-              <!-- Dark mode toggle button -->
-              <a class="navbar-item" id="darkModeToggle">
-                  <span class="icon">
-                      <i class="material-icons">brightness_4</i>
-                  </span>
-              </a>
+                <!-- Dark mode toggle button -->
+                <a class="navbar-item" id="darkModeToggle">
+                    <span class="icon" id="darkModeIcon">
+                        <i class="material-icons">{% if session.get('theme') == 'dark' %}brightness_4{% else %}brightness_5{% endif %}</i>
+                    </span>
+                </a>
             </div>
         </div>
     </nav>
+
+<!-- Flashed Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+    <section class="section">
+        <div class="container">
+            {% for category, message in messages %}
+                <div class="notification is-{{ category }}">
+                    {{ message }}
+                    <button class="delete"></button>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+{% endif %}
+{% endwith %}
+    
     <!-- Main Content -->
-    <div class="main-content">
-        {% block content %}
-        {% endblock %}
-    </div>
-    <!-- footer -->
-    <footer class="footer has-background-primary has-text-primary-invert m-0 p-1">
+    <main class="main-content section">
+        <div class="container">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer has-background-primary has-text-primary-invert">
         <div class="content has-text-centered">
             &copy; 2024 Dynamic Form Gen | All rights reserved
         </div>
     </footer>
-    <!--scripts-->
-    <!--Dark mode switch-->
-    <script>
-        // JavaScript to handle navbar toggle on mobile
-        document.addEventListener('DOMContentLoaded', () => {
-            // Get all "navbar-burger" elements
-            const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
 
-            // Check if there are any navbar burgers
-            if ($navbarBurgers.length > 0) {
-                // Add a click event on each of them
-                $navbarBurgers.forEach(el => {
-                    el.addEventListener('click', () => {
-                        // Get the target from the "data-target" attribute
-                        const target = el.dataset.target;
-                        const $target = document.getElementById(target);
-
-                        // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
-                        el.classList.toggle('is-active');
-                        $target.classList.toggle('is-active');
-                    });
+<!-- Scripts -->
+<script src="{{ url_for('static', filename='node_modules/bulma/bulma.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+        if ($navbarBurgers.length > 0) {
+            $navbarBurgers.forEach(el => {
+                el.addEventListener('click', () => {
+                    const target = el.dataset.target;
+                    const $target = document.getElementById(target);
+                    el.classList.toggle('is-active');
+                    $target.classList.toggle('is-active');
                 });
-            }
-        });
+            });
+        }
+    });
 
-        const darkModeToggle = document.getElementById('darkModeToggle');
+    // Function to set the theme based on the selected value
+    function setTheme(theme) {
         const html = document.documentElement;
-        const savedTheme = localStorage.getItem('theme');
+        html.setAttribute('data-theme', theme);
 
-        if (savedTheme) {
-            html.setAttribute('data-theme', savedTheme);
+        // Send the selected theme to the server
+        fetch('/set_theme', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ theme: theme }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('Theme saved successfully');
+            } else {
+                console.error('Failed to save theme');
+            }
+        })
+        .catch(error => {
+            console.error('Error saving theme:', error);
+        });
+    }
+
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const darkModeIcon = document.getElementById('darkModeIcon');
+    const homeLogoImg = document.querySelector('.column.is-6 img'); // Select the SVG image in home.html
+
+    // Function to update the SVG image based on the current theme
+    function updateSvgImage() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        if (currentTheme === 'light') {
+            homeLogoImg.classList.add('invert');
+        } else {
+            homeLogoImg.classList.remove('invert');
+        }
+    }
+
+    // Update the SVG image when the page loads
+    window.addEventListener('DOMContentLoaded', updateSvgImage);
+
+    darkModeToggle.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        setTheme(newTheme);
+
+        // Update the dark mode toggle icon
+        if (newTheme === 'dark') {
+            darkModeIcon.innerHTML = '<i class="material-icons">brightness_4</i>';
+            homeLogoImg.classList.remove('invert'); // Remove the invert class for dark mode
+        } else {
+            darkModeIcon.innerHTML = '<i class="material-icons">brightness_5</i>';
+            homeLogoImg.classList.add('invert'); // Add the invert class for light mode
         }
 
-        darkModeToggle.addEventListener('click', () => {
-            if (html.getAttribute('data-theme') === 'light') {
-                html.setAttribute('data-theme', 'dark');
-                localStorage.setItem('theme', 'dark'); // Save theme to local storage
-            } else {
-                html.setAttribute('data-theme', 'light');
-                localStorage.setItem('theme', 'light'); // Save theme to local storage
-            }
+        // Update the SVG image based on the new theme
+        updateSvgImage();
+    });
+
+    // Set the initial theme based on the server-side value
+    const initialTheme = '{{ session.get("theme", "light") }}';
+    setTheme(initialTheme);
+
+    // Close notification on delete button click
+    document.addEventListener('DOMContentLoaded', () => {
+        const deleteButtons = document.querySelectorAll('.notification .delete');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                button.closest('.notification').remove();
+            });
         });
-    </script>
-    <script src="{{ url_for('static', filename='node_modules/bulma/bulma.js') }}"></script>
+    });
+</script>
 </body>
 </html>

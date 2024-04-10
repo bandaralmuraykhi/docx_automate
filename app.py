@@ -2,7 +2,7 @@ import os
 import tempfile
 import uuid
 import hashlib
-from flask import Flask, render_template, request, redirect, jsonify, send_file, abort, url_for, flash
+from flask import Flask, session, render_template, request, redirect, jsonify, send_file, abort, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_mail import Mail, Message
@@ -134,14 +134,23 @@ class ResetPasswordForm(FlaskForm):
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Reset Password')
 
+@app.route('/set_theme', methods=['POST'])
+def set_theme():
+    theme = request.json.get('theme')
+    if theme in ['light', 'dark']:
+        session['theme'] = theme
+        return jsonify({'success': True})
+    else:
+        return jsonify({'success': False})
+
 @app.route('/')
 def home():
-    return render_template('home.html')
+    return render_template('home.html', theme=session.get('theme', 'light'))
 
 @app.route('/upload')
 @login_required
 def upload():
-    return render_template('upload.html')
+    return render_template('upload.html', theme=session.get('theme', 'light'))
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -168,7 +177,7 @@ def signup():
             flash('An error occurred during signup. Please try again.', 'danger')
             app.logger.error(f"Signup error: {str(e)}")
 
-    return render_template('signup.html', form=form)
+    return render_template('signup.html', form=form, theme=session.get('theme', 'light'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -180,17 +189,17 @@ def login():
             if hashed_password == user.password:
                 if user.confirmed:
                     login_user(user)
-                    flash('Login successful.', 'success')
+                    # flash('Login successful.', 'success')
                     return redirect(url_for('home'))
                 else:
                     flash('Please confirm your email address to access your account.', 'warning')
                     return redirect(url_for('unconfirmed', email=user.email))
             else:
-                flash('Invalid password. Please try again.', 'danger')
+                flash('Invalid email or password. Please try again.', 'danger')
         else:
-            flash('Invalid email. Please try again.', 'danger')
+            flash('Invalid email or password. Please try again.', 'danger')
 
-    return render_template('login.html', form=form)
+    return render_template('login.html', form=form, theme=session.get('theme', 'light'))
 
 @app.route('/logout')
 @login_required
@@ -242,7 +251,7 @@ def unconfirmed():
         return redirect(url_for('unconfirmed', email=email))
 
     flash('Your email address is not confirmed. Please check your inbox and confirm your email.', 'warning')
-    return render_template('unconfirmed.html', form=form)
+    return render_template('unconfirmed.html', form=form, theme=session.get('theme', 'light'))
 
 @app.route('/reset_password_request', methods=['GET', 'POST'])
 def reset_password_request():
@@ -264,7 +273,7 @@ def reset_password_request():
         else:
             flash('No account found with that email address.', 'danger')
 
-    return render_template('reset_password_request.html', form=form)
+    return render_template('reset_password_request.html', form=form, theme=session.get('theme', 'light'))
 
 @app.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
@@ -291,13 +300,17 @@ def reset_password(token):
             flash('An error occurred while updating your password.', 'danger')
             app.logger.error(f"Password update error: {str(e)}")
 
-    return render_template('reset_password.html', form=form, user=user)
+    return render_template('reset_password.html', form=form, user=user, theme=session.get('theme', 'light'))
 
-@app.route('/dashboard')
+PER_PAGE = 2  # Number of form responses to display per page
+
+@app.route('/dashboard', defaults={'page': 1})
+@app.route('/dashboard/page/<int:page>')
 @login_required
-def dashboard():
+def dashboard(page):
     try:
-        form_responses = FormResponse.query.filter_by(user_id=current_user.id).all()
+        page = request.args.get('page', 1, type=int)
+        form_responses = FormResponse.query.filter_by(user_id=current_user.id).paginate(page=page, per_page=PER_PAGE, error_out=False)
         return render_template('dashboard.html', form_responses=form_responses)
     except Exception as e:
         flash('An error occurred while loading the dashboard.', 'danger')
@@ -442,7 +455,7 @@ def fill_form(form_id):
             if form_response.allow_download:
                 return send_file(temp_file.name, as_attachment=True)
             else:
-                flash('File modification completed, but download is not allowed.', 'info')
+                flash('Form submitted, but download is not allowed.', 'info')
                 return redirect(url_for('fill_form', form_id=form_id))
         except Exception as e:
             flash('An error occurred while processing the form.', 'danger')
@@ -451,7 +464,7 @@ def fill_form(form_id):
     else:
         selected_cells = form_response.selected_cells.split(',')
         unique_filename = form_response.unique_filename
-        return render_template('fill_form.html', form_id=form_id, selected_cells=selected_cells, unique_filename=unique_filename)
+        return render_template('fill_form.html', form_id=form_id, selected_cells=selected_cells, unique_filename=unique_filename, theme=session.get('theme', 'light'))
 
 @app.route('/delete_form/<form_id>', methods=['GET'])
 @login_required
@@ -500,15 +513,15 @@ def update_form(form_id):
         form.selected_cells.choices = [(cell, cell) for cell in all_cells]
         form.selected_cells.data = form_response.selected_cells.split(',')
         form.form_name.data = form_response.form_name
-        return render_template('update_form.html', form=form)
+        return render_template('update_form.html', form=form, theme=session.get('theme', 'light'))
 
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template('404.html'), 404
+    return render_template('404.html', theme=session.get('theme', 'light')), 404
 
 @app.errorhandler(500)
 def internal_error(error):
-    return render_template('500.html'), 500
+    return render_template('500.html', theme=session.get('theme', 'light')), 500
 
 def send_email(to, subject, template, **kwargs):
     msg = Message(subject, recipients=[to])

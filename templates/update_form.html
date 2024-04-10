@@ -3,85 +3,50 @@
 {% block title %}Update Form{% endblock %}
 
 {% block content %}
-<style>
-    .cell-item {
-        display: inline-block;
-        padding: 5px 10px;
-        margin: 5px;
-        background-color: #f1f1f1;
-        color: black;
-        border-radius: 5px;
-        cursor: pointer;
-        user-select: none;
-    }
-    .cell-item.selected {
-        background-color:hsl(217, 71%, 53%)	;
-        color: #fff;
-    }
-    .main-content{
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        margin-left: 3rem;
-        margin-right: 3rem;
-        margin-top: 1rem;
-    }
-    .form-group {
-    display: grid;
-    align-items: stretch;
-    justify-items: stretch;
-    align-content: space-between;
-    }
-</style>
-
-<div class="main-content">
-    <h1 class="title">Update Form</h1>
-
-    <form method="POST" class="mb-3">
-        {{ form.hidden_tag() }}
-        <div class="form-group">
-            {{ form.form_name.label(class="form-label") }}
-            {{ form.form_name(class="form-control input is-primary") }}
-        </div>
-        <div class="form-group mt-2 mb-2">
-            <label class="form-label">Selected Cells</label>
-            <div id="cell-container">
-                {% for cell in form.selected_cells.choices %}
-                <span class="cell-item {% if cell[0] in form.selected_cells.data %} selected {% endif %} m-0 p-2" data-value="{{ cell[0] }}">{{ cell[1] }}</span>
-                {% endfor %}
+<section class="section">
+    <div class="container">
+        <h1 class="title has-text-centered">Update Form</h1>
+        <div class="columns is-centered">
+            <div class="column is-two-thirds">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    <div class="field">
+                        {{ form.form_name.label(class="label") }}
+                        <div class="control">
+                            {{ form.form_name(class="input", placeholder="Form Name") }}
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">Selected Cells</label>
+                        <div id="cell-container" class="tags">
+                            {% for cell in form.selected_cells.choices %}
+                            <span class="tag is-medium {% if cell[0] in form.selected_cells.data %}is-primary{% else %}is-light{% endif %} cell-item" data-value="{{ cell[0] }}">{{ cell[1] }}</span>
+                            {% endfor %}
+                        </div>
+                        {{ form.selected_cells(style="display: none;") }}
+                    </div>
+                    <div class="field">
+                        <div class="control">
+                            {{ form.submit(class="button is-primary is-fullwidth") }}
+                        </div>
+                    </div>
+                </form>
             </div>
-            <select multiple class="form-control" id="selected_cells" name="selected_cells" style="display: none;">
-                {% for cell in form.selected_cells.choices %}
-                <option value="{{ cell[0] }}" {% if cell[0] in form.selected_cells.data %} selected {% endif %}>{{ cell[1] }}</option>
-                {% endfor %}
-            </select>
         </div>
-        <div class="form-group">
-            {{ form.submit(class="button is-primary") }}
-        </div>
-    </form>
-
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    <div class="alert alert-info">
-        {% for message in messages %}
-        {{ message }}
-        {% endfor %}
     </div>
-    {% endif %}
-    {% endwith %}
-</div>
+</section>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
         $('.cell-item').click(function() {
-            $(this).toggleClass('selected');
+            $(this).toggleClass('is-primary is-light');
             updateSelectedCells();
         });
 
         function updateSelectedCells() {
             $('#selected_cells').empty();
-            $('.cell-item.selected').each(function() {
+            $('.cell-item.is-primary').each(function() {
                 var value = $(this).data('value');
                 $('#selected_cells').append($('<option>', {
                     value: value,

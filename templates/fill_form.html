@@ -3,17 +3,25 @@
 {% block title %}Fill Form{% endblock %}
 
 {% block content %}
-<div class="m-3">
-    <h1 class="title">Fill The Form</h1>
-    <form action="{{ url_for('fill_form', form_id=form_id) }}" method="POST" class="mb-3" style="display: inline-grid;">
-        {% for cell in selected_cells %}
+<section class="section">
+    <div class="container">
+        <h1 class="title has-text-centered">Fill The Form</h1>
+        <form action="{{ url_for('fill_form', form_id=form_id) }}" method="POST">
+            {% for cell in selected_cells %}
             <div class="field">
                 <label class="label" for="{{ cell }}">{{ cell }}</label>
-                <input class="input" type="text" name="{{ cell }}" id="{{ cell }}">
+                <div class="control">
+                    <input class="input" type="text" name="{{ cell }}" id="{{ cell }}" required>
+                </div>
             </div>
-        {% endfor %}
-        <input type="hidden" name="unique_filename" value="{{ unique_filename }}">
-        <input type="submit" value="Submit" class="button is-primary">
-    </form>
-</div>
+            {% endfor %}
+            <input type="hidden" name="unique_filename" value="{{ unique_filename }}">
+            <div class="field">
+                <div class="control">
+                    <button type="submit" class="button is-primary is-fullwidth">Submit</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
 {% endblock %}
