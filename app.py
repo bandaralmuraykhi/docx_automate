@@ -143,7 +143,13 @@ def set_theme():
     else:
         return jsonify({'success': False})
 
+# Redirect from root to /home
 @app.route('/')
+def index():
+    return redirect('/home')
+
+# Handle the /home route
+@app.route('/home')
 def home():
     return render_template('home.html', theme=session.get('theme', 'light'))
 
@@ -302,14 +308,17 @@ def reset_password(token):
 
     return render_template('reset_password.html', form=form, user=user, theme=session.get('theme', 'light'))
 
-PER_PAGE = 2  # Number of form responses to display per page
+PER_PAGE = 3  # Number of form responses to display per page
 
-@app.route('/dashboard', defaults={'page': 1})
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    return redirect(url_for('dashboard_paginated', page=1))
+
 @app.route('/dashboard/page/<int:page>')
 @login_required
-def dashboard(page):
+def dashboard_paginated(page):
     try:
-        page = request.args.get('page', 1, type=int)
         form_responses = FormResponse.query.filter_by(user_id=current_user.id).paginate(page=page, per_page=PER_PAGE, error_out=False)
         return render_template('dashboard.html', form_responses=form_responses)
     except Exception as e:

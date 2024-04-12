@@ -3,9 +3,9 @@
 {% block content %}
 <section class="section">
     <div class="container has-text-centered">
-        <div class="card" style="box-shadow: 0 0.5em 1em -0.125em rgba(10,10,10,.1), 0 0 0 1px rgba(10,10,10,.02);">
+        <div class="card">
             <div class="card-content">
-                <h1 class="title">Unconfirmed Email</h1>
+                <h1 class="title has-text-weight-bold">Unconfirmed Email</h1>
                 <p class="content is-medium">
                     Please confirm your email address to fully activate your account. Check your email for the confirmation link. If you haven't received it, you can resend the confirmation email.
                 </p>
@@ -14,7 +14,7 @@
                 <div class="card-footer-item">
                     <form method="POST">
                         {{ form.hidden_tag() }}
-                        <button type="submit" class="button is-primary is-medium">Resend Confirmation Email</button>
+                        <button type="submit" class="button is-primary is-rounded is-medium">Resend Confirmation Email</button>
                     </form>
                 </div>
             </div>

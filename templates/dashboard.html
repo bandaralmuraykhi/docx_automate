@@ -5,35 +5,40 @@
 {% block content %}
 <section class="section">
     <div class="container">
-        <h1 class="title has-text-centered">Manage Your Created Forms</h1>
+        <h1 class="title has-text-centered has-text-weight-bold">Your Forms</h1>
         {% if form_responses.items %}
         <div class="table-container">
-            <table class="table is-fullwidth is-hoverable is-striped is-bordered">
+            <table class="table is-fullwidth is-hoverable is-bordered rounded-table">
                 <thead>
                     <tr>
                         <th>Form Name</th>
-                        <th>Actions</th>
+                        <th class="has-text-centered">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for response in form_responses.items %}
                     <tr>
-                        <td class="has-text-weight-semibold is-size-5">{{ response.form_name }}</td>
-                        <td class="has-text-right">
-                            <div class="buttons">
-                                <a href="{{ response.form_link }}" class="button is-link" target="_blank">
+                        <td class="has-text-weight-semibold">
+                            <div class="tooltip">
+                                <span class="form-name">{{ response.form_name }}</span>
+                                <span class="tooltip-text">{{ response.form_name }}</span>
+                            </div>
+                        </td>
+                        <td class="has-text-centered">
+                            <div class="buttons are-small">
+                                <a href="{{ response.form_link }}" class="button is-primary is-outlined view-button">
                                     <span class="icon">
                                         <i class="fas fa-eye"></i>
                                     </span>
                                     <span>View</span>
                                 </a>
-                                <a href="{{ url_for('update_form', form_id=response.form_id) }}" class="button is-info">
+                                <a href="{{ url_for('update_form', form_id=response.form_id) }}" class="button is-info is-outlined edit-button">
                                     <span class="icon">
                                         <i class="fas fa-edit"></i>
                                     </span>
                                     <span>Edit</span>
                                 </a>
-                                <a href="{{ url_for('delete_form', form_id=response.form_id) }}" class="button is-danger" onclick="return confirm('Are you sure you want to delete this form?')">
+                                <a href="{{ url_for('delete_form', form_id=response.form_id) }}" class="button is-danger is-outlined delete-button" onclick="return confirm('Are you sure you want to delete this form?')">
                                     <span class="icon">
                                         <i class="fas fa-trash"></i>
                                     </span>
@@ -50,17 +55,23 @@
         <nav class="pagination is-centered mt-4" role="navigation" aria-label="pagination">
             <ul class="pagination-list">
                 {% if form_responses.has_prev %}
-                <li><a class="pagination-link" href="{{ url_for('dashboard', page=form_responses.prev_num) }}">Previous</a></li>
-                {% else %}
-                <li><span class="pagination-ellipsis">&hellip;</span></li>
+                <li>
+                    <a class="pagination-link" href="{{ url_for('dashboard_paginated', page=form_responses.prev_num) }}" aria-label="Previous page">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
                 {% endif %}
 
                 {% for page_num in form_responses.iter_pages() %}
                 {% if page_num %}
                 {% if page_num != form_responses.page %}
-                <li><a class="pagination-link" href="{{ url_for('dashboard', page=page_num) }}">{{ page_num }}</a></li>
+                <li>
+                    <a class="pagination-link" href="{{ url_for('dashboard_paginated', page=page_num) }}">{{ page_num }}</a>
+                </li>
                 {% else %}
-                <li><a class="pagination-link is-current" aria-current="page">{{ page_num }}</a></li>
+                <li>
+                    <a class="pagination-link is-current" aria-current="page">{{ page_num }}</a>
+                </li>
                 {% endif %}
                 {% else %}
                 <li><span class="pagination-ellipsis">&hellip;</span></li>
@@ -68,9 +79,11 @@
                 {% endfor %}
 
                 {% if form_responses.has_next %}
-                <li><a class="pagination-link" href="{{ url_for('dashboard', page=form_responses.next_num) }}">Next</a></li>
-                {% else %}
-                <li><span class="pagination-ellipsis">&hellip;</span></li>
+                <li>
+                    <a class="pagination-link" href="{{ url_for('dashboard_paginated', page=form_responses.next_num) }}" aria-label="Next page">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
                 {% endif %}
             </ul>
         </nav>
@@ -80,45 +93,6 @@
         {% endif %}
     </div>
 </section>
-{% endblock %}
-
-{% block extra_css %}
-<style>
-    .table th {
-        font-weight: 600;
-        background-color: #f5f5f5;
-        font-size: 0.9rem;
-    }
-
-    .table td {
-        vertical-align: middle;
-        font-size: 0.9rem;
-        padding: 1rem;
-    }
-
-    .is-size-5 {
-        font-size: 1.2rem !important;
-    }
-
-    .buttons .button {
-        padding: 0.4rem 0.8rem;
-    }
-
-    @media (max-width: 768px) {
-        .table td.has-text-right {
-            text-align: center !important;
-        }
-
-        .buttons {
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .buttons .button {
-            margin: 0.25rem;
-        }
-    }
-</style>
 {% endblock %}
 
 {% block extra_scripts %}

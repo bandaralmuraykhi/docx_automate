@@ -5,53 +5,49 @@
 {% block content %}
 <section class="section">
     <div class="container">
-        <h1 class="title has-text-centered">Upload a .docx File</h1>
+        <h1 class="title has-text-centered has-text-weight-bold">Upload a .docx File</h1>
         <div class="columns is-centered">
             <div class="column is-half">
                 <form id="uploadForm" enctype="multipart/form-data">
-                    <div class="field has-text-centered">
-                        <div class="file has-name is-boxed is-centered">
-                            <label class="file-label">
-                                <input type="file" id="fileInput" name="file" class="file-input" onchange="displayFileName()">
-                                <span class="file-cta">
-                                    <span class="file-icon">
-                                        <i class="fas fa-upload"></i>
-                                    </span>
-                                    <span class="file-label" id="fileLabel">Choose a file...</span>
+                    <div class="file has-name is-centered">
+                        <label class="file-label">
+                            <input type="file" id="fileInput" name="file" class="file-input" onchange="displayFileName()">
+                            <span class="file-cta">
+                                <span class="file-icon">
+                                    <i class="fas fa-upload"></i>
                                 </span>
-                            </label>
-                        </div>
+                                <span class="file-label" id="fileLabel">Choose a file...</span>
+                            </span>
+                        </label>
                     </div>
                     <div class="field has-text-centered mt-4">
-                        <div class="control">
-                            <button type="submit" class="button is-primary">Upload</button>
-                        </div>
+                        <button type="submit" class="button is-primary is-rounded">Upload</button>
                     </div>
                 </form>
             </div>
         </div>
         <div class="mt-5">
             <div id="table-data"></div>
-            <div id="options" style="display: none;" class="has-text-centered mt-4">
-                <h2 class="title is-4">Do you want to:</h2>
+            <div id="options" class="has-text-centered mt-4" style="display: none;">
+                <h2 class="title is-5 has-text-weight-semibold">Additional Options:</h2>
                 <div class="field">
                     <div class="control">
-                        <label class="custom-checkbox">
+                        <label class="checkbox">
                             <input type="checkbox" id="send-email" name="send_email">
-                            <span>Send modified files to email</span>
+                            <span class="has-text-grey-light">Send modified files to email</span>
                         </label>
                     </div>
                 </div>
                 <div class="field">
                     <div class="control">
-                        <label class="custom-checkbox">
+                        <label class="checkbox">
                             <input type="checkbox" id="allow-download" name="allow_download" checked>
-                            <span>Allow visitors to download modified files</span>
+                            <span class="has-text-grey-light">Allow visitors to download modified files</span>
                         </label>
                     </div>
                 </div>
                 <div class="has-text-centered mt-4">
-                    <button id="submit-cells" class="button is-primary" style="display: none;">Submit Selected Cells</button>
+                    <button id="submit-cells" class="button is-primary is-rounded">Submit Selected Cells</button>
                 </div>
             </div>
             <div id="form-url" class="has-text-centered mt-4"></div>
@@ -88,7 +84,7 @@
                 success: function(data) {
                     var tableData = data.table_data;
                     uniqueFilename = data.unique_filename;
-                    var tableHtml = '<table class="table is-bordered">';
+                    var tableHtml = '<table class="table is-bordered is-hoverable">';
                     tableHtml += '<thead><tr><th class="has-text-centered" colspan="2">Pick what you want in the form:</th></tr></thead><tbody>';
                     for (var i = 0; i < tableData.length; i++) {
                         var row = tableData[i];
@@ -143,7 +139,7 @@
                 contentType: 'application/json',
                 success: function(data) {
                     var formUrl = data.form_url + '?selected_cells=' + encodeURIComponent(selectedCells.join(',')) + '&unique_filename=' + encodeURIComponent(uniqueFilename);
-                    var urlButton = '<a href="' + formUrl + '" class="button is-primary" target="_blank">Open your custom form</a>';
+                    var urlButton = '<a href="' + formUrl + '" class="button is-primary is-rounded" target="_blank">Open your custom form</a>';
                     $('#form-url').html(urlButton);
                 }
             });

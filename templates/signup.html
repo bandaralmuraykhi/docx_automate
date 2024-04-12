@@ -7,11 +7,11 @@
     <div class="container">
         <div class="columns is-centered">
             <div class="column is-half">
-                <h1 class="title has-text-centered">Sign Up</h1>
+                <h1 class="title has-text-centered has-text-weight-bold">Sign Up</h1>
                 <form method="POST" action="{{ url_for('signup') }}">
                     {{ form.hidden_tag() }}
                     <div class="field">
-                        {{ form.email.label(class="label") }}
+                        {{ form.email.label(class="label has-text-weight-semibold") }}
                         <div class="control has-icons-left">
                             {{ form.email(class="input", placeholder="Your Email") }}
                             <span class="icon is-small is-left">
@@ -27,7 +27,7 @@
                         {% endif %}
                     </div>
                     <div class="field">
-                        {{ form.password.label(class="label") }}
+                        {{ form.password.label(class="label has-text-weight-semibold") }}
                         <div class="control has-icons-left">
                             {{ form.password(class="input", placeholder="Your Password") }}
                             <span class="icon is-small is-left">
@@ -43,7 +43,7 @@
                         {% endif %}
                     </div>
                     <div class="field">
-                        {{ form.confirm_password.label(class="label") }}
+                        {{ form.confirm_password.label(class="label has-text-weight-semibold") }}
                         <div class="control has-icons-left">
                             {{ form.confirm_password(class="input", placeholder="Confirm Password") }}
                             <span class="icon is-small is-left">
@@ -60,7 +60,7 @@
                     </div>
                     <div class="field">
                         <div class="control">
-                            {{ form.submit(class="button is-primary is-fullwidth") }}
+                            {{ form.submit(class="button is-primary is-rounded is-fullwidth") }}
                         </div>
                     </div>
                 </form>

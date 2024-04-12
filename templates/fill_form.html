@@ -5,11 +5,11 @@
 {% block content %}
 <section class="section">
     <div class="container">
-        <h1 class="title has-text-centered">Fill The Form</h1>
+        <h1 class="title has-text-centered has-text-weight-bold">Fill The Form</h1>
         <form action="{{ url_for('fill_form', form_id=form_id) }}" method="POST">
             {% for cell in selected_cells %}
             <div class="field">
-                <label class="label" for="{{ cell }}">{{ cell }}</label>
+                <label class="label has-text-weight-semibold" for="{{ cell }}">{{ cell }}</label>
                 <div class="control">
                     <input class="input" type="text" name="{{ cell }}" id="{{ cell }}" required>
                 </div>
@@ -18,7 +18,7 @@
             <input type="hidden" name="unique_filename" value="{{ unique_filename }}">
             <div class="field">
                 <div class="control">
-                    <button type="submit" class="button is-primary is-fullwidth">Submit</button>
+                    <button type="submit" class="button is-primary is-rounded is-fullwidth">Submit</button>
                 </div>
             </div>
         </form>

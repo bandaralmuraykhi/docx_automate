@@ -1,62 +1,55 @@
 {% extends 'base.html' %}
 
-{% block title %}
-    Log In
-{% endblock %}
+{% block title %}Log In{% endblock %}
 
 {% block content %}
-    <section class="section">
-        <div class="container">
-            <div class="columns is-centered">
-                <div class="column is-half">
-                    <h1 class="title has-text-centered">Log In</h1>
-
-                    <form method="POST">
-                        {{ form.hidden_tag() }}
-
-                        <div class="field">
-                            <label class="label" for="email">Email</label>
-                            <div class="control has-icons-left">
-                                {{ form.email(class="input", placeholder="Your Email", id="email") }}
-                                <span class="icon is-small is-left">
-                                    <i class="fas fa-envelope"></i>
-                                </span>
-                            </div>
-                            {% for error in form.email.errors %}
-                                <p class="help is-danger">{{ error }}</p>
-                            {% endfor %}
+<section class="section">
+    <div class="container">
+        <div class="columns is-centered">
+            <div class="column is-half">
+                <h1 class="title has-text-centered has-text-weight-bold">Log In</h1>
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    <div class="field">
+                        {{ form.email.label(class="label has-text-weight-semibold") }}
+                        <div class="control has-icons-left">
+                            {{ form.email(class="input", placeholder="Your Email") }}
+                            <span class="icon is-small is-left">
+                                <i class="fas fa-envelope"></i>
+                            </span>
                         </div>
-
-                        <div class="field">
-                            <label class="label" for="password">Password</label>
-                            <div class="control has-icons-left">
-                                {{ form.password(class="input", placeholder="Your Password", id="password") }}
-                                <span class="icon is-small is-left">
-                                    <i class="fas fa-lock"></i>
-                                </span>
-                            </div>
-                            {% for error in form.password.errors %}
-                                <p class="help is-danger">{{ error }}</p>
-                            {% endfor %}
+                        {% for error in form.email.errors %}
+                        <p class="help is-danger">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    <div class="field">
+                        {{ form.password.label(class="label has-text-weight-semibold") }}
+                        <div class="control has-icons-left">
+                            {{ form.password(class="input", placeholder="Your Password") }}
+                            <span class="icon is-small is-left">
+                                <i class="fas fa-lock"></i>
+                            </span>
                         </div>
-
-                        <div class="field">
-                            <div class="control">
-                                {{ form.submit(class="button is-primary is-fullwidth") }}
-                            </div>
+                        {% for error in form.password.errors %}
+                        <p class="help is-danger">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    <div class="field">
+                        <div class="control">
+                            {{ form.submit(class="button is-primary is-rounded is-fullwidth") }}
                         </div>
-                    </form>
-
-                    <div class="has-text-centered mt-4">
-                        <div class="mb-2">
-                            <p>Don't have an account? <a href="{{ url_for('signup') }}">Sign Up</a></p>
-                        </div>
-                        <div>
-                            <p>Forgot your password? <a href="{{ url_for('reset_password_request') }}">Reset Password</a></p>
-                        </div>
+                    </div>
+                </form>
+                <div class="has-text-centered mt-4">
+                    <div class="mb-2">
+                        <p>Don't have an account? <a href="{{ url_for('signup') }}">Sign Up</a></p>
+                    </div>
+                    <div>
+                        <p>Forgot your password? <a href="{{ url_for('reset_password_request') }}">Reset Password</a></p>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 {% endblock %}

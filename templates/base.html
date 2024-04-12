@@ -7,198 +7,89 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/bulma/css/bulma.min.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css">
-
     <style>
-        @media only screen and (max-width: 768px) {
-            .navbar-menu {
-                display: none;
-            }
-            .navbar-burger {
-                display: block;
-            }
-        }
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-        }
-        .flex-container {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-        .main-content {
-            flex: 1;
-        }
-        .tajawal-medium {
-            font-family: "Tajawal", sans-serif;
-            font-weight: 500;
-            font-style: normal;
-        }        
-        .reversible-image {
-            transition: filter 0.3s ease;
-        }
-        .cell-checkbox {
-            visibility: hidden;
-        }
-        label, tr, th, i {
-            user-select: none;
-        }
-        .form-check *,
-        .form-check ::after,
-        .form-check ::before {
-            box-sizing: border-box;
-        }
-        .form-check [type=checkbox].form-check-input {
-            margin: 0;
-            width: 0;
-            height: 0;
-            display: inline;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-        }
-        .form-check [type=checkbox].form-check-input + label:before {
-            content: "";
-            display: inline-block;
-            vertical-align: top;
-            height: 1.15em;
-            width: 1.15em;
-            margin-right: 0.6em;
-            color: rgba(0, 0, 0, 0.275);
-            border: solid 0.06em;
-            box-shadow: 0 0 0.04em, 0 0.06em 0.16em -0.03em inset, 0 0 0 0.07em transparent inset;
-            border-radius: 0.2em;
-            background: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xml:space="preserve" fill="white" viewBox="0 0 9 9"><rect x="0" y="4.3" transform="matrix(-0.707 -0.7072 0.7072 -0.707 0.5891 10.4702)" width="4.3" height="1.6" /><rect x="2.2" y="2.9" transform="matrix(-0.7071 0.7071 -0.7071 -0.7071 12.1877 2.9833)" width="6.1" height="1.7" /></svg>') no-repeat center, white;
-            background-size: 0;
-            will-change: color, border, background, background-size, box-shadow;
-            transform: translate3d(0, 0, 0);
-            transition: color 0.1s, border 0.1s, background 0.15s, box-shadow 0.1s;
-        }
-        .form-check [type=checkbox].form-check-input:enabled:active + label:before,
-        .form-check [type=checkbox].form-check-input:enabled + label:active:before {
-            box-shadow: 0 0 0.04em, 0 0.06em 0.16em -0.03em transparent inset, 0 0 0 0.07em rgba(0, 0, 0, 0.1) inset;
-            background-color: #f0f0f0;
-        }
-        .form-check [type=checkbox].form-check-input:checked + label:before {
-            background-color: #3B99FC;
-            background-size: 0.75em;
-            color: rgba(0, 0, 0, 0.075);
-        }
-        .form-check [type=checkbox].form-check-input:checked:enabled:active + label:before,
-        .form-check [type=checkbox].form-check-input:checked:enabled + label:active:before {
-            background-color: #0a7efb;
-            color: rgba(0, 0, 0, 0.275);
-        }
-        .form-check [type=checkbox].form-check-input:focus + label:before {
-            box-shadow: 0 0 0.04em, 0 0.06em 0.16em -0.03em transparent inset, 0 0 0 0.07em rgba(0, 0, 0, 0.1) inset, 0 0 0 3.3px rgba(65, 159, 255, 0.55), 0 0 0 5px rgba(65, 159, 255, 0.3);
-        }
-        .form-check [type=checkbox].form-check-input:focus:active + label:before,
-        .form-check [type=checkbox].form-check-input:focus + label:active:before {
-            box-shadow: 0 0 0.04em, 0 0.06em 0.16em -0.03em transparent inset, 0 0 0 0.07em rgba(0, 0, 0, 0.1) inset, 0 0 0 3.3px rgba(65, 159, 255, 0.55), 0 0 0 5px rgba(65, 159, 255, 0.3);
-        }
-        .form-check [type=checkbox].form-check-input:disabled + label:before {
-            opacity: 0.5;
-        }
-        .form-check [type=checkbox].form-check-input.dark + label:before {
-            color: rgba(255, 255, 255, 0.275);
-            background-color: #222;
-            background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xml:space="preserve" fill="rgba(34, 34, 34, 0.999)" viewBox="0 0 9 9"><rect x="0" y="4.3" transform="matrix(-0.707 -0.7072 0.7072 -0.707 0.5891 10.4702)" width="4.3" height="1.6" /><rect x="2.2" y="2.9" transform="matrix(-0.7071 0.7071 -0.7071 -0.7071 12.1877 2.9833)" width="6.1" height="1.7" /></svg>');
-        }
-        .form-check [type=checkbox].form-check-input.dark:enabled:active + label:before,
-        .form-check [type=checkbox].form-check-input.dark:enabled + label:active:before {
-            background-color: #444;
-            box-shadow: 0 0 0.04em, 0 0.06em 0.16em -0.03em transparent inset, 0 0 0 0.07em rgba(255, 255, 255, 0.1) inset;
-        }
-        .form-check [type=checkbox].form-check-input.dark:checked + label:before {
-            background-color: #a97035;
-            color: rgba(255, 255, 255, 0.075);
-        }
-        .form-check [type=checkbox].form-check-input.dark:checked:enabled:active + label:before,
-        .form-check [type=checkbox].form-check-input.dark:checked:enabled + label:active:before {
-            background-color: #c68035;
-            color: rgba(0, 0, 0, 0.275);
-        }
-    .custom-checkbox {
-        display: inline-flex;
-        align-items: center;
-        font-size: 1rem;
-        font-weight: 500;
-        color: #4a4a4a;
-    }
-
-    .custom-checkbox input[type="checkbox"] {
-        margin-right: 0.5rem;
-        vertical-align: middle;
-    }
-
-    .custom-checkbox input[type="checkbox"]:checked + span {
-        color: #3B99FC;
-    }
-
-        #darkModeToggle {
-            cursor: pointer;
-            transition: color 0.3s;
-        }
-        #darkModeToggle:hover {
-            color: #3B99FC;
-        }
-        #darkModeToggle .icon {
-            font-size: 24px;
-        }
-        img.invert {
-            filter: invert(1);
-        }
-        .logo-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 48px;
-            height: 48px;
-        }
-        #logo {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            transition: filter 0.3s ease;
-        }
-        [data-theme="light"] #logo {
-            filter: invert(1);
-        }
         body {
+            font-family: 'Poppins', sans-serif;
             line-height: 1.6;
+            background-color: #f7f7f7;
+            color: #333;
         }
+
+        [data-theme="light"] body {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="light"] .navbar {
+            background-color: #e9e9e9;
+        }
+
+        .navbar-brand .navbar-item img {
+            max-height: 2.5rem;
+        }
+
+        .navbar-menu {
+            box-shadow: none;
+        }
+
+        .main-content {
+            min-height: calc(100vh - 52px);
+            padding: 6rem 0 2rem;
+        }
+
+        .footer {
+            padding: 1rem;
+            background-color: #333;
+            color: #fff;
+        }
+
+        [data-theme="light"] .footer {
+            background-color: #e9e9e9;
+            color: #333;
+        }
+
         h1, h2, h3, h4, h5, h6 {
-            font-weight: bold;
+            font-weight: 600;
             margin-bottom: 1rem;
         }
+
         p {
             margin-bottom: 1.5rem;
         }
+
         a {
             color: #3B99FC;
             text-decoration: none;
             transition: color 0.3s;
         }
+
         a:hover {
             color: #0a7efb;
         }
+
         .button {
             transition: background-color 0.3s, color 0.3s;
         }
+
         .button:hover {
             background-color: #0a7efb;
             color: #fff;
         }
+
         .form-control {
             margin-bottom: 1rem;
         }
+
         .form-control label {
-            font-weight: bold;
+            font-weight: 600;
         }
+
         .form-control input,
         .form-control textarea,
         .form-control select {
@@ -208,22 +99,281 @@
             border-radius: 4px;
             transition: border-color 0.3s;
         }
+
         .form-control input:focus,
         .form-control textarea:focus,
         .form-control select:focus {
             border-color: #3B99FC;
             outline: none;
         }
+
+        .notification {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] body {
+            background-color: #222;
+            color: #f7f7f7;
+        }
+
+        [data-theme="dark"] .navbar {
+            background-color: #333;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        [data-theme="dark"] .navbar-item,
+        [data-theme="dark"] .navbar-link {
+            color: #f7f7f7;
+        }
+
+        [data-theme="dark"] .navbar-item:hover,
+        [data-theme="dark"] .navbar-link:hover {
+            background-color: #444;
+            color: #fff;
+        }
+
+        [data-theme="dark"] .footer {
+            background-color: #111;
+        }
+
+        [data-theme="dark"] .notification {
+            background-color: #333;
+            color: #f7f7f7;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        [data-theme="light"] .navbar-brand .navbar-item img {
+            filter: invert(1);
+        }
+    /* home page style */
+    .rounded-section {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    [data-theme="dark"] .features {
+        background-color: #2d2d2d;
+        color: #fff;
+    }
+
+    [data-theme="dark"] .features .box {
+        background-color: #363636;
+        color: #fff;
+    }
+
+    .feature-content {
+        text-align: center;
+    }
+
+    .icon-wrapper {
+        margin-bottom: 1.5rem;
+    }
+
+    .feature-box {
+        box-shadow: none;
+        border: 1px solid #dbdbdb;
+        text-align: center;
+        padding: 1.5rem;
+        border-radius: 10px;
+    }
+
+    [data-theme="dark"] .feature-box {
+        border-color: #4a4a4a;
+    }
+
+    [data-theme="light"] .button.is-light.is-outlined {
+        border-color: #363636;
+        color: #363636;
+    }
+
+    [data-theme="light"] .button.is-light.is-outlined:hover {
+        background-color: #363636;
+        border-color: #363636;
+        color: #fff;
+    }
+
+    .signup-button:hover {
+        background-color: #00d1b2 !important;
+        border-color: #00d1b2 !important;
+        color: #fff !important;
+    }
+
+    .login-button:hover {
+        background-color: #363636 !important;
+        border-color: #363636 !important;
+        color: #fff !important;
+    }
+
+    .start-automating-button:hover {
+        background-color: #3298dc !important;
+        border-color: #3298dc !important;
+        color: #fff !important;
+    }
+    /* rounded table for dashboard page  */
+    
+    .table {
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table th,
+.table td {
+    border: none;
+    padding: 1rem;
+}
+
+.table thead th {
+    font-weight: 600;
+    text-align: left;
+    background-color: #f5f5f5;
+    font-size: 0.9rem;
+}
+
+.table tbody tr {
+    background-color: #fff;
+    transition: background-color 0.3s;
+}
+
+.table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.table tbody tr:hover {
+    background-color: #e0e0e0;
+}
+
+.table tbody td {
+    vertical-align: middle;
+    font-size: 0.9rem;
+}
+
+.table thead tr:first-child th:first-child {
+    border-top-left-radius: 10px;
+}
+
+.table thead tr:first-child th:last-child {
+    border-top-right-radius: 10px;
+}
+
+.table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 10px;
+}
+
+.table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 10px;
+}
+
+.table th,
+.table td {
+    border-bottom: 1px solid #dbdbdb;
+}
+
+[data-theme="dark"] .table thead th {
+    background-color: #363636;
+    color: #fff;
+}
+
+[data-theme="dark"] .table tbody tr {
+    background-color: #2d2d2d;
+}
+
+[data-theme="dark"] .table tbody tr:nth-child(even) {
+    background-color: #363636;
+}
+
+[data-theme="dark"] .table tbody tr:hover {
+    background-color: #4a4a4a;
+}
+
+[data-theme="dark"] .table th,
+[data-theme="dark"] .table td {
+    border-bottom: 1px solid #4a4a4a;
+}
+
+.buttons .button {
+    padding: 0.4rem 0.8rem;
+}
+
+.view-button:hover {
+    background-color: #00d1b2 !important;
+    border-color: #00d1b2 !important;
+    color: #fff !important;
+}
+
+.edit-button:hover {
+    background-color: #3298dc !important;
+    border-color: #3298dc !important;
+    color: #fff !important;
+}
+
+.delete-button:hover {
+    background-color: #ff3860 !important;
+    border-color: #ff3860 !important;
+    color: #fff !important;
+}
+
+.form-name {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.form-name:hover {
+    cursor: pointer;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip .tooltip-text {
+    visibility: hidden;
+    width: 200px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    padding: 5px;
+    border-radius: 6px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+@media (max-width: 768px) {
+    .table td.has-text-centered {
+        text-align: center !important;
+    }
+
+    .buttons {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .buttons .button {
+        margin: 0.25rem;
+    }
+}
     </style>
 </head>
-<body class="flex-container tajawal-medium">
+<body>
     <!-- Navigation Bar -->
-    <nav class="navbar" role="navigation" aria-label="main navigation">
+    <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
         <div class="navbar-brand">
             <a class="navbar-item" href="{{ url_for('home') }}">
-                <div class="logo-container">
-                    <img id="logo" src="{{ url_for('static', filename='img/Designer.svg') }}" alt="DFG Logo">
-                </div>
+                <img src="{{ url_for('static', filename='img/Designer.svg') }}" alt="DFG Logo">
             </a>
             <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarMenuHeroA">
                 <span aria-hidden="true"></span>
@@ -237,145 +387,133 @@
                 {% if current_user.is_authenticated %}
                     <a class="navbar-item" href="{{ url_for('upload') }}">Upload</a>
                     <a class="navbar-item" href="{{ url_for('dashboard') }}">Dashboard</a>
-                    <a class="navbar-item" href="{{ url_for('logout') }}">Logout</a>
+                    <a class="navbar-item" href="{{ url_for('logout') }}">
+                        <span class="icon">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </span>
+                    </a>
                 {% else %}
-                    <a class="navbar-item" href="{{ url_for('login') }}">Login</a>
-                    <a class="navbar-item" href="{{ url_for('signup') }}">Sign Up</a>
+                    <a class="navbar-item" href="{{ url_for('login') }}">
+                        <span class="icon">
+                            <i class="fas fa-sign-in-alt"></i>
+                        </span>
+                    </a>
+                    <a class="navbar-item" href="{{ url_for('signup') }}">
+                        <span class="icon">
+                            <i class="fas fa-user-plus"></i>
+                        </span>
+                    </a>
                 {% endif %}
             </div>
             <div class="navbar-end">
                 <!-- Dark mode toggle button -->
                 <a class="navbar-item" id="darkModeToggle">
                     <span class="icon" id="darkModeIcon">
-                        <i class="material-icons">{% if session.get('theme') == 'dark' %}brightness_4{% else %}brightness_5{% endif %}</i>
+                        <i class="fas fa-{{ 'sun' if session.get('theme') == 'dark' else 'moon' }}"></i>
                     </span>
                 </a>
             </div>
         </div>
     </nav>
 
-<!-- Flashed Messages -->
-{% with messages = get_flashed_messages(with_categories=true) %}
-{% if messages %}
-    <section class="section">
-        <div class="container">
-            {% for category, message in messages %}
-                <div class="notification is-{{ category }}">
-                    {{ message }}
-                    <button class="delete"></button>
+    <!-- Flashed Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <section class="section">
+                <div class="container">
+                    {% for category, message in messages %}
+                        <div class="notification is-{{ category }}">
+                            {{ message }}
+                            <button class="delete"></button>
+                        </div>
+                    {% endfor %}
                 </div>
-            {% endfor %}
-        </div>
-    </section>
-{% endif %}
-{% endwith %}
-    
+            </section>
+        {% endif %}
+    {% endwith %}
+
     <!-- Main Content -->
     <main class="main-content section">
         <div class="container">
-            {% block content %}
-            {% endblock %}
+            {% block content %}{% endblock %}
         </div>
     </main>
 
     <!-- Footer -->
-    <footer class="footer has-background-primary has-text-primary-invert">
+    <footer class="footer">
         <div class="content has-text-centered">
             &copy; 2024 Dynamic Form Gen | All rights reserved
         </div>
     </footer>
 
-<!-- Scripts -->
-<script src="{{ url_for('static', filename='node_modules/bulma/bulma.js') }}"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
-        if ($navbarBurgers.length > 0) {
-            $navbarBurgers.forEach(el => {
-                el.addEventListener('click', () => {
-                    const target = el.dataset.target;
-                    const $target = document.getElementById(target);
-                    el.classList.toggle('is-active');
-                    $target.classList.toggle('is-active');
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='node_modules/bulma/bulma.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+            if ($navbarBurgers.length > 0) {
+                $navbarBurgers.forEach(el => {
+                    el.addEventListener('click', () => {
+                        const target = el.dataset.target;
+                        const $target = document.getElementById(target);
+                        el.classList.toggle('is-active');
+                        $target.classList.toggle('is-active');
+                    });
+                });
+            }
+        });
+
+        // Function to set the theme based on the selected value
+        function setTheme(theme) {
+            const html = document.documentElement;
+            html.setAttribute('data-theme', theme);
+
+            // Send the selected theme to the server
+            fetch('/set_theme', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ theme: theme }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Theme saved successfully');
+                } else {
+                    console.error('Failed to save theme');
+                }
+            })
+            .catch(error => {
+                console.error('Error saving theme:', error);
+            });
+        }
+
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const darkModeIcon = document.getElementById('darkModeIcon');
+
+        darkModeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            setTheme(newTheme);
+
+            // Update the dark mode toggle icon
+            darkModeIcon.innerHTML = `<i class="fas fa-${newTheme === 'dark' ? 'sun' : 'moon'}"></i>`;
+        });
+
+        // Set the initial theme based on the server-side value
+        const initialTheme = '{{ session.get("theme", "light") }}';
+        setTheme(initialTheme);
+
+        // Close notification on delete button click
+        document.addEventListener('DOMContentLoaded', () => {
+            const deleteButtons = document.querySelectorAll('.notification .delete');
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    button.closest('.notification').remove();
                 });
             });
-        }
-    });
-
-    // Function to set the theme based on the selected value
-    function setTheme(theme) {
-        const html = document.documentElement;
-        html.setAttribute('data-theme', theme);
-
-        // Send the selected theme to the server
-        fetch('/set_theme', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ theme: theme }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                console.log('Theme saved successfully');
-            } else {
-                console.error('Failed to save theme');
-            }
-        })
-        .catch(error => {
-            console.error('Error saving theme:', error);
         });
-    }
-
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    const darkModeIcon = document.getElementById('darkModeIcon');
-    const homeLogoImg = document.querySelector('.column.is-6 img'); // Select the SVG image in home.html
-
-    // Function to update the SVG image based on the current theme
-    function updateSvgImage() {
-        const currentTheme = document.documentElement.getAttribute('data-theme');
-        if (currentTheme === 'light') {
-            homeLogoImg.classList.add('invert');
-        } else {
-            homeLogoImg.classList.remove('invert');
-        }
-    }
-
-    // Update the SVG image when the page loads
-    window.addEventListener('DOMContentLoaded', updateSvgImage);
-
-    darkModeToggle.addEventListener('click', () => {
-        const currentTheme = document.documentElement.getAttribute('data-theme');
-        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-        setTheme(newTheme);
-
-        // Update the dark mode toggle icon
-        if (newTheme === 'dark') {
-            darkModeIcon.innerHTML = '<i class="material-icons">brightness_4</i>';
-            homeLogoImg.classList.remove('invert'); // Remove the invert class for dark mode
-        } else {
-            darkModeIcon.innerHTML = '<i class="material-icons">brightness_5</i>';
-            homeLogoImg.classList.add('invert'); // Add the invert class for light mode
-        }
-
-        // Update the SVG image based on the new theme
-        updateSvgImage();
-    });
-
-    // Set the initial theme based on the server-side value
-    const initialTheme = '{{ session.get("theme", "light") }}';
-    setTheme(initialTheme);
-
-    // Close notification on delete button click
-    document.addEventListener('DOMContentLoaded', () => {
-        const deleteButtons = document.querySelectorAll('.notification .delete');
-        deleteButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                button.closest('.notification').remove();
-            });
-        });
-    });
-</script>
+    </script>
 </body>
 </html>
